@@ -1,7 +1,6 @@
 use clap::Parser;
 use dialoguer::{BasicHistory, Input, theme::ColorfulTheme};
-use seva::config::Config;
-use seva::parser::parse;
+use seva::{config::Config, eval::eval, parser::parse};
 
 fn main() {
     let config = Config::parse();
@@ -9,19 +8,24 @@ fn main() {
     let mut history = BasicHistory::new().max_entries(100).no_duplicates(true);
 
     loop {
-        if let Ok(cmd) = Input::<String>::with_theme(&ColorfulTheme::default())
+        if let Ok(input) = Input::<String>::with_theme(&ColorfulTheme::default())
             .with_prompt("seva")
             .history_with(&mut history)
             .interact_text()
         {
-            if cmd == "exit" {
+            if input == "exit" {
                 break;
             }
 
-            match parse(&cmd) {
-                Ok(res) => println!("{res:#?}"),
-                Err(e) => println!("{e}"),
-            }
+            let parse_result = parse(&input);
+
+            let Ok(expr) = parse_result else {
+                println!("{}", parse_result.err().unwrap());
+                continue;
+            };
+
+            let value = eval(expr);
+            println!("{}", value);
         }
     }
 }
