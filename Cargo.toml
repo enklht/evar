@@ -9,3 +9,4 @@ clap = { version = "4.5.32", features = ["derive"] }
 dialoguer = { version = "0.11.0", features = ["history"] }
 pest = "2.7.15"
 pest_derive = "2.7.15"
+thiserror = "2.0.12"

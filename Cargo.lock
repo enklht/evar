@@ -338,6 +338,7 @@ dependencies = [
  "dialoguer",
  "pest",
  "pest_derive",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
