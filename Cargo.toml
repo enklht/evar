@@ -6,6 +6,6 @@ description = "Simple math calculator inspired by eva"
 
 [dependencies]
 clap = { version = "4.5.32", features = ["derive"] }
-dialoguer = "0.11.0"
+dialoguer = { version = "0.11.0", features = ["history"] }
 pest = "2.7.15"
 pest_derive = "2.7.15"

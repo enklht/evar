@@ -1,4 +1,5 @@
 use clap::{Parser, ValueEnum};
+use dialoguer::{BasicHistory, Input, theme::ColorfulTheme};
 
 #[derive(ValueEnum, Debug, Clone)]
 enum AngleUnit {
@@ -24,5 +25,18 @@ struct Config {
 fn main() {
     let config = Config::parse();
 
-    println!("{:?}", config);
+    let mut history = BasicHistory::new().max_entries(100).no_duplicates(true);
+
+    loop {
+        if let Ok(cmd) = Input::<String>::with_theme(&ColorfulTheme::default())
+            .with_prompt("seva")
+            .history_with(&mut history)
+            .interact()
+        {
+            if cmd == "exit" {
+                break;
+            }
+            println!("{cmd}");
+        }
+    }
 }
