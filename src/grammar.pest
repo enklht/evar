@@ -1,0 +1,26 @@
+WHITESPACE = _{ " " }
+
+equation = _{ SOI ~ expr ~ EOI }
+  expr = { prefix? ~ primary ~ postfix? ~ (infix ~ prefix? ~ primary ~ postfix?)* }
+    infix = _{ add | sub | mul | div | rem | pow }
+      add = { "+" }
+      sub = { "-" }
+      mul = { "*" }
+      div = { "/" }
+      rem = { "%" }
+      pow = { "^" }
+    prefix = _{ neg }
+      neg = { "-" }
+    postfix = _{ fac }
+      fac = { "!" }
+    primary = _{ number | binaryfncall | unaryfncall | "(" ~ expr ~ ")"}
+      number = @{
+        "-"?
+        ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+        ~ ("." ~ ASCII_DIGIT*)?
+        ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+      }
+      unaryfncall = { unaryfn ~ "(" ~ expr ~ ")" }
+        unaryfn = { "sin" }
+      binaryfncall = { binaryfn ~ "(" ~ expr ~ "," ~ expr ~ ")" }
+        binaryfn = { "log" }
