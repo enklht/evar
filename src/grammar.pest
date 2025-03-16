@@ -22,6 +22,19 @@ equation = _{ SOI ~ expr ~ EOI }
         fac = { "!" }
     atom = _{ binaryfncall | unaryfncall | "(" ~ expr ~ ")"}
       unaryfncall = { unaryfn ~ "(" ~ expr ~ ")" }
-        unaryfn = { "sin" }
+        unaryfn = {
+          "sin" | "cos" | "tan"
+          |"sec" | "csc" | "cot"
+          | "sinh" | "cosh" | "tanh"
+          | "asin" | "acos" | "atan"
+          | "asec" | "acsc" | "acot"
+          | "floor" | "ceil" | "round"
+          | "abs" | "sqrt" | "exp"
+          | "exp2" | "ln" | "rad"
+          |"deg"
+        }
       binaryfncall = { binaryfn ~ "(" ~ expr ~ "," ~ expr ~ ")" }
-        binaryfn = { "log" }
+        binaryfn = {
+          "log"
+          | "nroot"
+        }
