@@ -35,7 +35,6 @@ pub enum BinaryFunction {
 pub enum UnaryOperator {
     Neg,
     Fac,
-    Power,
 }
 
 #[derive(Debug, PartialEq)]
