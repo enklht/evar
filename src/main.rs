@@ -20,12 +20,12 @@ fn main() {
             let parse_result = parse(&input);
 
             let Ok(expr) = parse_result else {
-                println!("{}", parse_result.err().unwrap());
+                eprintln!("{}", parse_result.unwrap_err());
                 continue;
             };
 
             let value = eval(expr, &context);
-            println!("{}", value);
+            println!("{:?}", value);
         }
     }
 }

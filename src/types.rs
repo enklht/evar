@@ -24,11 +24,37 @@ pub enum Expr {
 #[derive(Debug, PartialEq)]
 pub enum UnaryFunction {
     Sin,
+    Cos,
+    Tan,
+    Sec,
+    Csc,
+    Cot,
+    Asin,
+    Acos,
+    Atan,
+    Asec,
+    Acsc,
+    Acot,
+    Sinh,
+    Cosh,
+    Tanh,
+    Floor,
+    Ceil,
+    Round,
+    Abs,
+    Sqrt,
+    Exp,
+    Exp2,
+    Ln,
+    Log10,
+    Rad,
+    Deg,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum BinaryFunction {
     Log,
+    NRoot,
 }
 
 #[derive(Debug, PartialEq)]

@@ -1,11 +1,13 @@
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum MathError {
-    #[error("")]
+pub enum EvalError {
+    #[error("division by zero")]
     ZeroDivionError,
-    #[error("")]
+
+    #[error("domain error")]
     DomainError,
-    #[error("")]
-    OutOfBound,
+
+    #[error("overflow")]
+    OverFlowError,
 }
