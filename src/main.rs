@@ -3,7 +3,7 @@ use dialoguer::{BasicHistory, Input, theme::ColorfulTheme};
 use seva::{context::Context, eval::eval, parser::parse};
 
 fn main() {
-    let config = Context::parse();
+    let context = Context::parse();
 
     let mut history = BasicHistory::new().max_entries(100).no_duplicates(true);
 
@@ -24,7 +24,7 @@ fn main() {
                 continue;
             };
 
-            let value = eval(expr);
+            let value = eval(expr, &context);
             println!("{}", value);
         }
     }

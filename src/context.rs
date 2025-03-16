@@ -1,10 +1,11 @@
+use std::sync::{LazyLock, Mutex, OnceLock};
+
 use clap::{Parser, ValueEnum};
 
 #[derive(ValueEnum, Debug, Clone)]
-enum AngleUnit {
+pub enum AngleUnit {
     Radian,
     Degree,
-    Gradian,
 }
 
 #[derive(Parser, Debug)]
@@ -12,11 +13,11 @@ enum AngleUnit {
 pub struct Context {
     /// Number of decimal places in output
     #[arg(short, long, default_value_t = 10)]
-    fix: u8,
+    pub fix: u8,
     /// Radix of calculation output
     #[arg(short, long, default_value_t = 10)]
-    base: u8,
+    pub base: u8,
     /// Angle Unit
     #[arg(value_enum, short, long, default_value_t = AngleUnit::Radian)]
-    angle_unit: AngleUnit,
+    pub angle_unit: AngleUnit,
 }

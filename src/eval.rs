@@ -1,4 +1,7 @@
-use crate::types::*;
+use crate::{
+    context::{AngleUnit, Context},
+    types::*,
+};
 
 fn factorial(n: f64) -> f64 {
     let result = (1..=n.round() as usize).try_fold(1, |acc, x| usize::checked_mul(acc, x));
@@ -9,31 +12,44 @@ fn factorial(n: f64) -> f64 {
     }
 }
 
-pub fn eval(expr: Expr) -> f64 {
+pub fn eval(expr: Expr, context: &Context) -> f64 {
     match expr {
         Expr::Number(f) => f,
-        Expr::BinaryOperation {
-            operator: op,
-            lhs,
-            rhs,
-        } => {
+        Expr::BinaryOperation { operator, lhs, rhs } => {
             use BinaryOperator::*;
-            match op {
-                Add => eval(*lhs) + eval(*rhs),
-                Sub => eval(*lhs) - eval(*rhs),
-                Mul => eval(*lhs) * eval(*rhs),
-                Div => eval(*lhs) / eval(*rhs),
-                Rem => eval(*lhs).rem_euclid(eval(*rhs)),
-                Pow => eval(*lhs).powf(eval(*rhs)),
+            match operator {
+                Add => eval(*lhs, context) + eval(*rhs, context),
+                Sub => eval(*lhs, context) - eval(*rhs, context),
+                Mul => eval(*lhs, context) * eval(*rhs, context),
+                Div => eval(*lhs, context) / eval(*rhs, context),
+                Rem => eval(*lhs, context).rem_euclid(eval(*rhs, context)),
+                Pow => eval(*lhs, context).powf(eval(*rhs, context)),
             }
         }
-        Expr::UnaryOperation { operator: op, arg } => {
+        Expr::UnaryOperation { operator, arg } => {
             use UnaryOperator::*;
-            match op {
-                Neg => -eval(*arg),
-                Fac => factorial(eval(*arg)),
+            match operator {
+                Neg => -eval(*arg, context),
+                Fac => factorial(eval(*arg, context)),
             }
         }
-        _ => todo!(),
+        Expr::UnaryFunctionCall { function, arg } => {
+            use AngleUnit::*;
+            use UnaryFunction::*;
+            match (function, &context.angle_unit) {
+                (Sin, Radian) => eval(*arg, context).sin(),
+                (Sin, Degree) => eval(*arg, context).to_degrees().sin(),
+            }
+        }
+        Expr::BinaryFunctionCall {
+            function,
+            arg1,
+            arg2,
+        } => {
+            use BinaryFunction::*;
+            match (function, &context.angle_unit) {
+                (Log, _) => eval(*arg1, context).log(eval(*arg2, context)),
+            }
+        }
     }
 }
