@@ -77,9 +77,29 @@ mod tests {
     use super::*;
     use Expr::*;
 
+    macro_rules! unop {
+        ($op_name:ident, $val:expr) => {
+            Expr::UnaryOp {
+                op: super::UnaryOp::$op_name,
+                arg: $val.into(),
+            }
+        };
+    }
+
+    macro_rules! binop {
+        ($op_name:ident, $lhs:expr, $rhs:expr) => {
+            Expr::BinaryOp {
+                op: super::BinaryOp::$op_name,
+                lhs: $lhs.into(),
+                rhs: $rhs.into(),
+            }
+        };
+    }
+
     #[test]
     fn number() {
         assert_eq!(parse("1"), Ok(Number(1.)));
+        assert_eq!(parse("   1"), Ok(Number(1.)));
         assert_eq!(parse("0"), Ok(Number(0.)));
         assert_eq!(parse("0."), Ok(Number(0.)));
         assert_eq!(parse("2.5"), Ok(Number(2.5)));
@@ -231,23 +251,23 @@ mod tests {
     fn unary_function_calls() {
         assert_eq!(
             parse("sin(0)"),
-            Ok(Expr::UnaryFunctionCall {
-                function: UnaryFunction::Sin,
+            Ok(Expr::UnaryFnCall {
+                function: UnaryFn::Sin,
                 arg: Box::new(Number(0.)),
             })
         );
         assert_eq!(
-            parse("sin(3.14)"),
-            Ok(Expr::UnaryFunctionCall {
-                function: UnaryFunction::Sin,
-                arg: Box::new(Number(3.14)),
+            parse("sin(3)"),
+            Ok(Expr::UnaryFnCall {
+                function: UnaryFn::Sin,
+                arg: Box::new(Number(3.)),
             })
         );
         assert_eq!(
-            parse("sin(-3.14)"),
-            Ok(Expr::UnaryFunctionCall {
-                function: UnaryFunction::Sin,
-                arg: Box::new(Number(-3.14)),
+            parse("sin(-3.)"),
+            Ok(Expr::UnaryFnCall {
+                function: UnaryFn::Sin,
+                arg: Box::new(Number(-3.)),
             })
         );
 
@@ -261,24 +281,24 @@ mod tests {
     fn binary_function_calls() {
         assert_eq!(
             parse("log(1, 10)"),
-            Ok(Expr::BinaryFunctionCall {
-                function: BinaryFunction::Log,
+            Ok(Expr::BinaryFnCall {
+                function: BinaryFn::Log,
                 arg1: Box::new(Number(1.)),
                 arg2: Box::new(Number(10.)),
             })
         );
         assert_eq!(
             parse("log(2.5, 10)"),
-            Ok(Expr::BinaryFunctionCall {
-                function: BinaryFunction::Log,
+            Ok(Expr::BinaryFnCall {
+                function: BinaryFn::Log,
                 arg1: Box::new(Number(2.5)),
                 arg2: Box::new(Number(10.)),
             })
         );
         assert_eq!(
             parse("log(2.5, 2.5)"),
-            Ok(Expr::BinaryFunctionCall {
-                function: BinaryFunction::Log,
+            Ok(Expr::BinaryFnCall {
+                function: BinaryFn::Log,
                 arg1: Box::new(Number(2.5)),
                 arg2: Box::new(Number(2.5)),
             })
@@ -297,8 +317,8 @@ mod tests {
             parse("sin(2 + 3) * 4"),
             Ok(binop!(
                 Mul,
-                Expr::UnaryFunctionCall {
-                    function: UnaryFunction::Sin,
+                Expr::UnaryFnCall {
+                    function: UnaryFn::Sin,
                     arg: Box::new(binop!(Add, Number(2.), Number(3.))),
                 },
                 Number(4.)
@@ -309,8 +329,8 @@ mod tests {
             Ok(binop!(
                 Mul,
                 Number(2.),
-                Expr::BinaryFunctionCall {
-                    function: BinaryFunction::Log,
+                Expr::BinaryFnCall {
+                    function: BinaryFn::Log,
                     arg1: Box::new(binop!(Add, Number(3.), Number(4.))),
                     arg2: Box::new(Number(10.)),
                 }
@@ -323,13 +343,13 @@ mod tests {
                 binop!(
                     Mul,
                     Number(2.),
-                    Expr::UnaryFunctionCall {
-                        function: UnaryFunction::Sin,
+                    Expr::UnaryFnCall {
+                        function: UnaryFn::Sin,
                         arg: Box::new(binop!(Add, Number(3.), Number(4.))),
                     }
                 ),
-                Expr::BinaryFunctionCall {
-                    function: BinaryFunction::Log,
+                Expr::BinaryFnCall {
+                    function: BinaryFn::Log,
                     arg1: Box::new(Number(5.)),
                     arg2: Box::new(Number(6.)),
                 }
@@ -343,8 +363,8 @@ mod tests {
                 binop!(
                     Add,
                     Number(3.),
-                    Expr::UnaryFunctionCall {
-                        function: UnaryFunction::Sin,
+                    Expr::UnaryFnCall {
+                        function: UnaryFn::Sin,
                         arg: Box::new(Number(4.)),
                     }
                 )
@@ -354,13 +374,13 @@ mod tests {
             parse("log(2, 3) + sin(4)"),
             Ok(binop!(
                 Add,
-                Expr::BinaryFunctionCall {
-                    function: BinaryFunction::Log,
+                Expr::BinaryFnCall {
+                    function: BinaryFn::Log,
                     arg1: Box::new(Number(2.)),
                     arg2: Box::new(Number(3.)),
                 },
-                Expr::UnaryFunctionCall {
-                    function: UnaryFunction::Sin,
+                Expr::UnaryFnCall {
+                    function: UnaryFn::Sin,
                     arg: Box::new(Number(4.)),
                 }
             ))
@@ -397,8 +417,8 @@ mod tests {
             parse("sin(1e3) + 2.5"),
             Ok(binop!(
                 Add,
-                Expr::UnaryFunctionCall {
-                    function: UnaryFunction::Sin,
+                Expr::UnaryFnCall {
+                    function: UnaryFn::Sin,
                     arg: Box::new(Number(1e3)),
                 },
                 Number(2.5)
@@ -408,8 +428,8 @@ mod tests {
             parse("log(1e-3, 2.5) * 10"),
             Ok(binop!(
                 Mul,
-                Expr::BinaryFunctionCall {
-                    function: BinaryFunction::Log,
+                Expr::BinaryFnCall {
+                    function: BinaryFn::Log,
                     arg1: Box::new(Number(1e-3)),
                     arg2: Box::new(Number(2.5)),
                 },
@@ -423,13 +443,13 @@ mod tests {
                 binop!(
                     Mul,
                     Number(2.),
-                    Expr::UnaryFunctionCall {
-                        function: UnaryFunction::Sin,
+                    Expr::UnaryFnCall {
+                        function: UnaryFn::Sin,
                         arg: Box::new(Number(2.5e2)),
                     }
                 ),
-                Expr::BinaryFunctionCall {
-                    function: BinaryFunction::Log,
+                Expr::BinaryFnCall {
+                    function: BinaryFn::Log,
                     arg1: Box::new(Number(1.)),
                     arg2: Box::new(Number(1e3)),
                 }

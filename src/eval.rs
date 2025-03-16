@@ -119,151 +119,207 @@ mod tests {
     }
 
     #[test]
-    fn test_eval_addition() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Add,
+    fn test_eval_basic_operations() {
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Add,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 2.0 + 3.0);
-    }
 
-    #[test]
-    fn test_eval_subtraction() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Sub,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Sub,
             lhs: Box::new(Expr::Number(5.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 5.0 - 3.0);
-    }
 
-    #[test]
-    fn test_eval_multiplication() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Mul,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Mul,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 2.0 * 3.0);
-    }
 
-    #[test]
-    fn test_eval_division() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Div,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Div,
             lhs: Box::new(Expr::Number(6.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 6.0 / 3.0);
-    }
 
-    #[test]
-    fn test_eval_remainder() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Rem,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Rem,
             lhs: Box::new(Expr::Number(7.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 7.0 % 3.0);
-    }
 
-    #[test]
-    fn test_eval_power() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Pow,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Pow,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 2.0_f64.powf(3.0));
-    }
 
-    #[test]
-    fn test_eval_negation() {
-        let expr = Expr::UnaryOperation {
-            operator: UnaryOperator::Neg,
+        let expr = Expr::UnaryOp {
+            op: UnaryOp::Neg,
             arg: Box::new(Expr::Number(5.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), -5.0);
-    }
 
-    #[test]
-    fn test_eval_factorial() {
-        let expr = Expr::UnaryOperation {
-            operator: UnaryOperator::Fac,
+        let expr = Expr::UnaryOp {
+            op: UnaryOp::Fac,
             arg: Box::new(Expr::Number(5.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 120.0); // 5! = 120
     }
 
     #[test]
-    fn test_eval_sin_radian() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Sin,
+    fn test_eval_functions() {
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Sin,
             arg: Box::new(Expr::Number(std::f64::consts::PI / 2.0)),
         };
         assert_eq!(
             eval(expr, &RADIAN_CONTEXT).unwrap(),
             (std::f64::consts::PI / 2.0).sin()
         );
-    }
 
-    #[test]
-    fn test_eval_sin_degree() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Sin,
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Sin,
             arg: Box::new(Expr::Number(90.0)),
         };
         assert_eq!(
             eval(expr, &DEGREE_CONTEXT).unwrap(),
             90.0_f64.to_radians().sin()
         );
-    }
 
-    #[test]
-    fn test_eval_log() {
-        let expr = Expr::BinaryFunctionCall {
-            function: BinaryFunction::Log,
+        let expr = Expr::BinaryFnCall {
+            function: BinaryFn::Log,
             arg1: Box::new(Expr::Number(8.0)),
             arg2: Box::new(Expr::Number(2.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 8.0_f64.log(2.0));
-    }
 
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Cos,
+            arg: Box::new(Expr::Number(0.0)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 0.0_f64.cos());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Cos,
+            arg: Box::new(Expr::Number(0.0)),
+        };
+        assert_eq!(
+            eval(expr, &DEGREE_CONTEXT).unwrap(),
+            0.0_f64.to_radians().cos()
+        );
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Tan,
+            arg: Box::new(Expr::Number(std::f64::consts::PI / 4.0)),
+        };
+        assert_eq!(
+            eval(expr, &RADIAN_CONTEXT).unwrap(),
+            (std::f64::consts::PI / 4.0).tan()
+        );
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Tan,
+            arg: Box::new(Expr::Number(45.0)),
+        };
+        assert_eq!(
+            eval(expr, &DEGREE_CONTEXT).unwrap(),
+            45.0_f64.to_radians().tan()
+        );
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Sqrt,
+            arg: Box::new(Expr::Number(16.0)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 16.0_f64.sqrt());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Exp,
+            arg: Box::new(Expr::Number(1.0)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 1.0_f64.exp());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Ln,
+            arg: Box::new(Expr::Number(std::f64::consts::E)),
+        };
+        assert_eq!(
+            eval(expr, &RADIAN_CONTEXT).unwrap(),
+            std::f64::consts::E.ln()
+        );
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Log10,
+            arg: Box::new(Expr::Number(1000.0)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 1000.0_f64.log10());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Exp2,
+            arg: Box::new(Expr::Number(3.0)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.0_f64.exp2());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Floor,
+            arg: Box::new(Expr::Number(3.7)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.7_f64.floor());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Ceil,
+            arg: Box::new(Expr::Number(3.3)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.3_f64.ceil());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Round,
+            arg: Box::new(Expr::Number(3.5)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.5_f64.round());
+
+        let expr = Expr::UnaryFnCall {
+            function: UnaryFn::Abs,
+            arg: Box::new(Expr::Number(-3.5)),
+        };
+        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), (-3.5_f64).abs());
+    }
     #[test]
-    fn test_eval_mixed_addition_and_multiplication() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Add,
-            lhs: Box::new(Expr::BinaryOperation {
-                operator: BinaryOperator::Mul,
+    fn test_eval_mixed_operations() {
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Add,
+            lhs: Box::new(Expr::BinaryOp {
+                op: BinaryOp::Mul,
                 lhs: Box::new(Expr::Number(2.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
             rhs: Box::new(Expr::Number(4.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), (2.0 * 3.0) + 4.0);
-    }
 
-    #[test]
-    fn test_eval_mixed_subtraction_and_division() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Sub,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Sub,
             lhs: Box::new(Expr::Number(10.0)),
-            rhs: Box::new(Expr::BinaryOperation {
-                operator: BinaryOperator::Div,
+            rhs: Box::new(Expr::BinaryOp {
+                op: BinaryOp::Div,
                 lhs: Box::new(Expr::Number(6.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 10.0 - (6.0 / 3.0));
-    }
 
-    #[test]
-    fn test_eval_mixed_power_and_remainder() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Rem,
-            lhs: Box::new(Expr::BinaryOperation {
-                operator: BinaryOperator::Pow,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Rem,
+            lhs: Box::new(Expr::BinaryOp {
+                op: BinaryOp::Pow,
                 lhs: Box::new(Expr::Number(2.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
@@ -273,40 +329,31 @@ mod tests {
             eval(expr, &RADIAN_CONTEXT).unwrap(),
             2.0_f64.powf(3.0) % 3.0
         );
-    }
 
-    #[test]
-    fn test_eval_mixed_negation_and_addition() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Add,
-            lhs: Box::new(Expr::UnaryOperation {
-                operator: UnaryOperator::Neg,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Add,
+            lhs: Box::new(Expr::UnaryOp {
+                op: UnaryOp::Neg,
                 arg: Box::new(Expr::Number(5.0)),
             }),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), -5.0 + 3.0);
-    }
 
-    #[test]
-    fn test_eval_mixed_factorial_and_subtraction() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Sub,
-            lhs: Box::new(Expr::UnaryOperation {
-                operator: UnaryOperator::Fac,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Sub,
+            lhs: Box::new(Expr::UnaryOp {
+                op: UnaryOp::Fac,
                 arg: Box::new(Expr::Number(5.0)),
             }),
             rhs: Box::new(Expr::Number(119.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 120.0 - 119.0); // 5! - 119
-    }
 
-    #[test]
-    fn test_eval_mixed_sin_and_multiplication() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Mul,
-            lhs: Box::new(Expr::UnaryFunctionCall {
-                function: UnaryFunction::Sin,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Mul,
+            lhs: Box::new(Expr::UnaryFnCall {
+                function: UnaryFn::Sin,
                 arg: Box::new(Expr::Number(std::f64::consts::PI / 2.0)),
             }),
             rhs: Box::new(Expr::Number(2.0)),
@@ -315,148 +362,16 @@ mod tests {
             eval(expr, &RADIAN_CONTEXT).unwrap(),
             (std::f64::consts::PI / 2.0).sin() * 2.0
         );
-    }
 
-    #[test]
-    fn test_eval_mixed_log_and_addition() {
-        let expr = Expr::BinaryOperation {
-            operator: BinaryOperator::Add,
-            lhs: Box::new(Expr::BinaryFunctionCall {
-                function: BinaryFunction::Log,
+        let expr = Expr::BinaryOp {
+            op: BinaryOp::Add,
+            lhs: Box::new(Expr::BinaryFnCall {
+                function: BinaryFn::Log,
                 arg1: Box::new(Expr::Number(8.0)),
                 arg2: Box::new(Expr::Number(2.0)),
             }),
             rhs: Box::new(Expr::Number(1.0)),
         };
         assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 8.0_f64.log(2.0) + 1.0);
-    }
-
-    #[test]
-    fn test_eval_cos_radian() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Cos,
-            arg: Box::new(Expr::Number(0.0)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 0.0_f64.cos());
-    }
-
-    #[test]
-    fn test_eval_cos_degree() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Cos,
-            arg: Box::new(Expr::Number(0.0)),
-        };
-        assert_eq!(
-            eval(expr, &DEGREE_CONTEXT).unwrap(),
-            0.0_f64.to_radians().cos()
-        );
-    }
-
-    #[test]
-    fn test_eval_tan_radian() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Tan,
-            arg: Box::new(Expr::Number(std::f64::consts::PI / 4.0)),
-        };
-        assert_eq!(
-            eval(expr, &RADIAN_CONTEXT).unwrap(),
-            (std::f64::consts::PI / 4.0).tan()
-        );
-    }
-
-    #[test]
-    fn test_eval_tan_degree() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Tan,
-            arg: Box::new(Expr::Number(45.0)),
-        };
-        assert_eq!(
-            eval(expr, &DEGREE_CONTEXT).unwrap(),
-            45.0_f64.to_radians().tan()
-        );
-    }
-
-    #[test]
-    fn test_eval_sqrt() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Sqrt,
-            arg: Box::new(Expr::Number(16.0)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 16.0_f64.sqrt());
-    }
-
-    #[test]
-    fn test_eval_exp() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Exp,
-            arg: Box::new(Expr::Number(1.0)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 1.0_f64.exp());
-    }
-
-    #[test]
-    fn test_eval_ln() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Ln,
-            arg: Box::new(Expr::Number(std::f64::consts::E)),
-        };
-        assert_eq!(
-            eval(expr, &RADIAN_CONTEXT).unwrap(),
-            std::f64::consts::E.ln()
-        );
-    }
-
-    #[test]
-    fn test_eval_log10() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Log10,
-            arg: Box::new(Expr::Number(1000.0)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 1000.0_f64.log10());
-    }
-
-    #[test]
-    fn test_eval_exp2() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Exp2,
-            arg: Box::new(Expr::Number(3.0)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.0_f64.exp2());
-    }
-
-    #[test]
-    fn test_eval_floor() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Floor,
-            arg: Box::new(Expr::Number(3.7)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.7_f64.floor());
-    }
-
-    #[test]
-    fn test_eval_ceil() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Ceil,
-            arg: Box::new(Expr::Number(3.3)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.3_f64.ceil());
-    }
-
-    #[test]
-    fn test_eval_round() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Round,
-            arg: Box::new(Expr::Number(3.5)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), 3.5_f64.round());
-    }
-
-    #[test]
-    fn test_eval_abs() {
-        let expr = Expr::UnaryFunctionCall {
-            function: UnaryFunction::Abs,
-            arg: Box::new(Expr::Number(-3.5)),
-        };
-        assert_eq!(eval(expr, &RADIAN_CONTEXT).unwrap(), (-3.5_f64).abs());
     }
 }
