@@ -13,7 +13,7 @@ fn factorial(n: f64) -> Result<f64, EvalError> {
 
     match result {
         Some(n) => Ok(n as f64),
-        None => Err(EvalError::OverFlow),
+        None => Err(EvalError::OverFlowError),
     }
 }
 

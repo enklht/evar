@@ -9,5 +9,5 @@ pub enum EvalError {
     DomainError,
 
     #[error("overflow")]
-    OverFlow,
+    OverFlowError,
 }
