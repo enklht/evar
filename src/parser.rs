@@ -1,30 +1,5 @@
 use crate::types::*;
 
-use pest::Parser;
-use pest::{
-    error::Error,
-    iterators::{Pair, Pairs},
-    pratt_parser::PrattParser,
-};
-use pest_derive::Parser;
-use std::sync::LazyLock;
-
-static PRATT_PARSER: LazyLock<PrattParser<Rule>> = LazyLock::new(|| {
-    use Rule::*;
-    use pest::pratt_parser::{Assoc::*, Op};
-
-    PrattParser::new()
-        .op(Op::infix(add, Left) | Op::infix(sub, Left))
-        .op(Op::infix(mul, Left) | Op::infix(div, Left) | Op::infix(rem, Left))
-        .op(Op::infix(pow, Right))
-        .op(Op::postfix(fac))
-        .op(Op::prefix(Rule::neg))
-});
-
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-struct ExprParser;
-
 macro_rules! unop {
     ($op_name:ident, $val:expr) => {
         Expr::UnaryOperation {
@@ -44,99 +19,58 @@ macro_rules! binop {
     };
 }
 
-fn parse_unary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
-    let mut pair = pair.into_inner();
-    let name = pair.next().unwrap().as_str();
-    let arg = parse_expr(pair.next().unwrap().into_inner())?;
+// fn parse_unary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
+//     Ok(Expr::UnaryFunctionCall {
+//         function: match name {
+//             "sin" => UnaryFunction::Sin,
+//             "cos" => UnaryFunction::Cos,
+//             "tan" => UnaryFunction::Tan,
+//             "sec" => UnaryFunction::Sec,
+//             "csc" => UnaryFunction::Csc,
+//             "cot" => UnaryFunction::Cot,
+//             "asin" => UnaryFunction::Asin,
+//             "acos" => UnaryFunction::Acos,
+//             "atan" => UnaryFunction::Atan,
+//             "asec" => UnaryFunction::Asec,
+//             "acsc" => UnaryFunction::Acsc,
+//             "acot" => UnaryFunction::Acot,
+//             "sinh" => UnaryFunction::Sinh,
+//             "cosh" => UnaryFunction::Cosh,
+//             "tanh" => UnaryFunction::Tanh,
+//             "floor" => UnaryFunction::Floor,
+//             "ceil" => UnaryFunction::Ceil,
+//             "round" => UnaryFunction::Round,
+//             "abs" => UnaryFunction::Abs,
+//             "sqrt" => UnaryFunction::Sqrt,
+//             "exp" => UnaryFunction::Exp,
+//             "exp2" => UnaryFunction::Exp2,
+//             "ln" => UnaryFunction::Ln,
+//             "log10" => UnaryFunction::Log10,
+//             "rad" => UnaryFunction::Rad,
+//             "deg" => UnaryFunction::Deg,
+//             _ => unreachable!("unimplemented unary function"),
+//         },
+//         arg: Box::new(arg),
+//     })
+// }
 
-    Ok(Expr::UnaryFunctionCall {
-        function: match name {
-            "sin" => UnaryFunction::Sin,
-            "cos" => UnaryFunction::Cos,
-            "tan" => UnaryFunction::Tan,
-            "sec" => UnaryFunction::Sec,
-            "csc" => UnaryFunction::Csc,
-            "cot" => UnaryFunction::Cot,
-            "asin" => UnaryFunction::Asin,
-            "acos" => UnaryFunction::Acos,
-            "atan" => UnaryFunction::Atan,
-            "asec" => UnaryFunction::Asec,
-            "acsc" => UnaryFunction::Acsc,
-            "acot" => UnaryFunction::Acot,
-            "sinh" => UnaryFunction::Sinh,
-            "cosh" => UnaryFunction::Cosh,
-            "tanh" => UnaryFunction::Tanh,
-            "floor" => UnaryFunction::Floor,
-            "ceil" => UnaryFunction::Ceil,
-            "round" => UnaryFunction::Round,
-            "abs" => UnaryFunction::Abs,
-            "sqrt" => UnaryFunction::Sqrt,
-            "exp" => UnaryFunction::Exp,
-            "exp2" => UnaryFunction::Exp2,
-            "ln" => UnaryFunction::Ln,
-            "log10" => UnaryFunction::Log10,
-            "rad" => UnaryFunction::Rad,
-            "deg" => UnaryFunction::Deg,
-            _ => unreachable!("unimplemented unary function"),
-        },
-        arg: Box::new(arg),
-    })
+// fn parse_binary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
+//     Ok(Expr::BinaryFunctionCall {
+//         function: match name {
+//             "log" => BinaryFunction::Log,
+//             "nroot" => BinaryFunction::NRoot,
+//             _ => unreachable!("unknown binary function"),
+//         },
+//         arg1: Box::new(arg1),
+//         arg2: Box::new(arg2),
+//     })
+// }
+
+pub fn parse(input: &str) -> Result<Expr, String> {
+    todo!()
 }
 
-fn parse_binary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
-    let mut pair = pair.into_inner();
-    let name = pair.next().unwrap().as_str();
-    let arg1 = parse_expr(pair.next().unwrap().into_inner())?;
-    let arg2 = parse_expr(pair.next().unwrap().into_inner())?;
-
-    Ok(Expr::BinaryFunctionCall {
-        function: match name {
-            "log" => BinaryFunction::Log,
-            "nroot" => BinaryFunction::NRoot,
-            _ => unreachable!("unknown binary function"),
-        },
-        arg1: Box::new(arg1),
-        arg2: Box::new(arg2),
-    })
-}
-
-fn parse_expr(pairs: Pairs<Rule>) -> Result<Expr, Error<Rule>> {
-    PRATT_PARSER
-        .map_primary(|primary| match primary.as_rule() {
-            Rule::number => Ok(Expr::Number(primary.as_str().parse().unwrap())),
-            Rule::binaryfncall => parse_binary_function(primary),
-            Rule::unaryfncall => parse_unary_function(primary),
-            Rule::expr => parse_expr(primary.into_inner()),
-            _ => unreachable!(),
-        })
-        .map_prefix(|op, val| match op.as_rule() {
-            Rule::neg => Ok(unop!(Neg, val?)),
-            _ => unreachable!(),
-        })
-        .map_postfix(|val, op| match op.as_rule() {
-            Rule::fac => Ok(unop!(Fac, val?)),
-            _ => unreachable!(),
-        })
-        .map_infix(|lhs, op, rhs| match op.as_rule() {
-            Rule::add => Ok(binop!(Add, lhs?, rhs?)),
-            Rule::sub => Ok(binop!(Sub, lhs?, rhs?)),
-            Rule::mul => Ok(binop!(Mul, lhs?, rhs?)),
-            Rule::div => Ok(binop!(Div, lhs?, rhs?)),
-            Rule::rem => Ok(binop!(Rem, lhs?, rhs?)),
-            Rule::pow => Ok(binop!(Pow, lhs?, rhs?)),
-            _ => unreachable!(),
-        })
-        .parse(pairs)
-}
-
-pub fn parse(input: &str) -> Result<Expr, Error<Rule>> {
-    parse_expr(
-        ExprParser::parse(Rule::equation, input)?
-            .next()
-            .unwrap()
-            .into_inner(),
-    )
-}
+fn parser
 
 #[cfg(test)]
 mod tests {
@@ -268,6 +202,7 @@ mod tests {
             parse("-(2 ^ -3)"),
             Ok(unop!(Neg, binop!(Pow, Number(2.), Number(-3.))))
         );
+        assert_eq!(parse("-(-3)"), Ok(unop!(Neg, Number(-3.))));
 
         // Failing tests
         assert!(parse("- 6*3").is_err());
@@ -289,6 +224,7 @@ mod tests {
         assert!(parse("2 * (3 + 4) -").is_err());
         assert!(parse("2 * (3 + 4) - 5 %").is_err());
         assert!(parse("2 * (3 + 4) - 5 % 6)").is_err());
+        assert!(parse("--3").is_err());
     }
 
     #[test]
