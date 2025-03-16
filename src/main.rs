@@ -1,9 +1,9 @@
 use clap::Parser;
 use dialoguer::{BasicHistory, Input, theme::ColorfulTheme};
-use seva::{config::Config, eval::eval, parser::parse};
+use seva::{context::Context, eval::eval, parser::parse};
 
 fn main() {
-    let config = Config::parse();
+    let config = Context::parse();
 
     let mut history = BasicHistory::new().max_entries(100).no_duplicates(true);
 

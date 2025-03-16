@@ -9,7 +9,7 @@ enum AngleUnit {
 
 #[derive(Parser, Debug)]
 #[command(version, about)]
-pub struct Config {
+pub struct Context {
     /// Number of decimal places in output
     #[arg(short, long, default_value_t = 10)]
     fix: u8,
