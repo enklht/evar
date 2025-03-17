@@ -1,76 +1,181 @@
+use ariadne::{Color, Label, Report, ReportKind, Source};
+use chumsky::prelude::*;
+use text::whitespace;
+
 use crate::types::*;
 
-macro_rules! unop {
-    ($op_name:ident, $val:expr) => {
-        Expr::UnaryOperation {
-            operator: UnaryOperator::$op_name,
-            arg: $val.into(),
-        }
-    };
+fn unary_function_to_enum(name: &str) -> UnaryFn {
+    match name {
+        "sin" => UnaryFn::Sin,
+        "cos" => UnaryFn::Cos,
+        "tan" => UnaryFn::Tan,
+        "sec" => UnaryFn::Sec,
+        "csc" => UnaryFn::Csc,
+        "cot" => UnaryFn::Cot,
+        "asin" => UnaryFn::Asin,
+        "acos" => UnaryFn::Acos,
+        "atan" => UnaryFn::Atan,
+        "asec" => UnaryFn::Asec,
+        "acsc" => UnaryFn::Acsc,
+        "acot" => UnaryFn::Acot,
+        "sinh" => UnaryFn::Sinh,
+        "cosh" => UnaryFn::Cosh,
+        "tanh" => UnaryFn::Tanh,
+        "floor" => UnaryFn::Floor,
+        "ceil" => UnaryFn::Ceil,
+        "round" => UnaryFn::Round,
+        "abs" => UnaryFn::Abs,
+        "sqrt" => UnaryFn::Sqrt,
+        "exp" => UnaryFn::Exp,
+        "exp2" => UnaryFn::Exp2,
+        "ln" => UnaryFn::Ln,
+        "log10" => UnaryFn::Log10,
+        "rad" => UnaryFn::Rad,
+        "deg" => UnaryFn::Deg,
+        _ => unreachable!("unimplemented unary function"),
+    }
 }
 
-macro_rules! binop {
-    ($op_name:ident, $lhs:expr, $rhs:expr) => {
-        Expr::BinaryOperation {
-            operator: BinaryOperator::$op_name,
-            lhs: $lhs.into(),
-            rhs: $rhs.into(),
-        }
-    };
+fn binary_function_to_enum(name: &str) -> BinaryFn {
+    match name {
+        "log" => BinaryFn::Log,
+        "nroot" => BinaryFn::NRoot,
+        _ => unreachable!("unknown binary function"),
+    }
 }
-
-// fn parse_unary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
-//     Ok(Expr::UnaryFunctionCall {
-//         function: match name {
-//             "sin" => UnaryFunction::Sin,
-//             "cos" => UnaryFunction::Cos,
-//             "tan" => UnaryFunction::Tan,
-//             "sec" => UnaryFunction::Sec,
-//             "csc" => UnaryFunction::Csc,
-//             "cot" => UnaryFunction::Cot,
-//             "asin" => UnaryFunction::Asin,
-//             "acos" => UnaryFunction::Acos,
-//             "atan" => UnaryFunction::Atan,
-//             "asec" => UnaryFunction::Asec,
-//             "acsc" => UnaryFunction::Acsc,
-//             "acot" => UnaryFunction::Acot,
-//             "sinh" => UnaryFunction::Sinh,
-//             "cosh" => UnaryFunction::Cosh,
-//             "tanh" => UnaryFunction::Tanh,
-//             "floor" => UnaryFunction::Floor,
-//             "ceil" => UnaryFunction::Ceil,
-//             "round" => UnaryFunction::Round,
-//             "abs" => UnaryFunction::Abs,
-//             "sqrt" => UnaryFunction::Sqrt,
-//             "exp" => UnaryFunction::Exp,
-//             "exp2" => UnaryFunction::Exp2,
-//             "ln" => UnaryFunction::Ln,
-//             "log10" => UnaryFunction::Log10,
-//             "rad" => UnaryFunction::Rad,
-//             "deg" => UnaryFunction::Deg,
-//             _ => unreachable!("unimplemented unary function"),
-//         },
-//         arg: Box::new(arg),
-//     })
-// }
-
-// fn parse_binary_function(pair: Pair<Rule>) -> Result<Expr, Error<Rule>> {
-//     Ok(Expr::BinaryFunctionCall {
-//         function: match name {
-//             "log" => BinaryFunction::Log,
-//             "nroot" => BinaryFunction::NRoot,
-//             _ => unreachable!("unknown binary function"),
-//         },
-//         arg1: Box::new(arg1),
-//         arg2: Box::new(arg2),
-//     })
-// }
 
 pub fn parse(input: &str) -> Result<Expr, String> {
-    todo!()
+    let (expr, errs) = parser().parse(input).into_output_errors();
+
+    errs.iter().for_each(|e| {
+        Report::build(ReportKind::Error, ("sample.tao", e.span().into_range()))
+            .with_message(e.to_string())
+            .with_label(
+                Label::new(("", e.span().into_range()))
+                    .with_message(e.to_string())
+                    .with_color(Color::Red),
+            )
+            .finish()
+            .print(("", Source::from(input)))
+            .unwrap();
+    });
+
+    println!("{:?}", expr);
+
+    expr.ok_or(format!("{:?}", errs))
 }
 
-fn parser
+#[allow(clippy::let_and_return)]
+fn parser<'a>() -> impl Parser<'a, &'a str, Expr, extra::Err<Rich<'a, char>>> {
+    recursive(|expr| {
+        let digits = text::digits(10);
+
+        let frac = just('.').then(digits);
+        let exp = one_of("eE").then(one_of("+-").or_not()).then(digits);
+        let number = just('-')
+            .or_not()
+            .then(digits)
+            .then(frac.or_not())
+            .then(exp.or_not())
+            .to_slice()
+            .map(|s: &str| Expr::Number(s.parse().unwrap()));
+
+        let unary_fn_call = just('s')
+            .to(UnaryFn::Sin)
+            .then_ignore(just('('))
+            .then(expr.clone())
+            .then_ignore(just(')'))
+            .map(|(func, arg)| Expr::UnaryFnCall {
+                function: func,
+                arg: Box::new(arg),
+            });
+
+        let atomic = choice((
+            unary_fn_call,
+            expr.clone()
+                .delimited_by(just('(').padded(), just(')').padded()),
+            expr.clone().delimited_by(just('|'), just('|')),
+        ));
+
+        let numbers = number
+            .foldl(
+                whitespace().at_least(1).ignore_then(number).repeated(),
+                |acc, rhs| Expr::BinaryOp {
+                    op: BinaryOp::Mul,
+                    lhs: Box::new(acc),
+                    rhs: Box::new(rhs),
+                },
+            )
+            .padded();
+
+        let polyatomic = numbers.or(atomic.clone()).foldl(
+            atomic.clone().padded().repeated().at_least(1),
+            |acc, rhs| Expr::BinaryOp {
+                op: BinaryOp::Mul,
+                lhs: Box::new(acc),
+                rhs: Box::new(rhs),
+            },
+        );
+
+        let op = |c| just(c).padded();
+
+        let prefixed = just('-')
+            .then(atomic.clone())
+            .map(|(_, rhs)| Expr::UnaryOp {
+                op: UnaryOp::Neg,
+                arg: Box::new(rhs),
+            });
+
+        let postfixed = prefixed
+            .clone()
+            .or(number)
+            .then(just('!'))
+            .map(|(lhs, _)| Expr::UnaryOp {
+                op: UnaryOp::Fac,
+                arg: Box::new(lhs),
+            });
+
+        let term = postfixed.or(prefixed).or(atomic).or(number).padded();
+
+        let power = term
+            .clone()
+            .then(op('^').to(BinaryOp::Pow))
+            .repeated()
+            .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            });
+
+        let product = polyatomic.clone().or(power.clone()).foldl(
+            choice((
+                op('*').to(BinaryOp::Mul),
+                op('/').to(BinaryOp::Div),
+                op('%').to(BinaryOp::Rem),
+            ))
+            .then(polyatomic.or(power))
+            .repeated(),
+            |lhs, (op, rhs)| Expr::BinaryOp {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            },
+        );
+
+        let sum = product.clone().foldl(
+            choice((op('+').to(BinaryOp::Add), op('-').to(BinaryOp::Sub)))
+                .then(product)
+                .repeated(),
+            |lhs, (op, rhs)| Expr::BinaryOp {
+                op,
+                lhs: Box::new(lhs),
+                rhs: Box::new(rhs),
+            },
+        );
+
+        sum
+    })
+}
 
 #[cfg(test)]
 mod tests {
@@ -101,7 +206,6 @@ mod tests {
         assert_eq!(parse("1"), Ok(Number(1.)));
         assert_eq!(parse("   1"), Ok(Number(1.)));
         assert_eq!(parse("0"), Ok(Number(0.)));
-        assert_eq!(parse("0."), Ok(Number(0.)));
         assert_eq!(parse("2.5"), Ok(Number(2.5)));
         assert_eq!(parse("1e3"), Ok(Number(1e3)));
         assert_eq!(parse("1e-3"), Ok(Number(1e-3)));
@@ -116,6 +220,7 @@ mod tests {
 
         // Tests that should fail
         assert!(parse("abc").is_err());
+        assert!(parse("0.").is_err());
         assert!(parse("- 3").is_err());
         assert!(parse("1..2").is_err());
         assert!(parse("1e").is_err());
@@ -223,6 +328,15 @@ mod tests {
             Ok(unop!(Neg, binop!(Pow, Number(2.), Number(-3.))))
         );
         assert_eq!(parse("-(-3)"), Ok(unop!(Neg, Number(-3.))));
+        assert_eq!(parse("-2 (-3)"), Ok(binop!(Mul, Number(-2.), Number(-3.))));
+        assert_eq!(
+            parse("(5 + 3)  (-3)"),
+            Ok(binop!(
+                Mul,
+                binop!(Add, Number(5.), Number(3.)),
+                Number(-3.)
+            ))
+        );
 
         // Failing tests
         assert!(parse("- 6*3").is_err());
@@ -245,6 +359,7 @@ mod tests {
         assert!(parse("2 * (3 + 4) - 5 %").is_err());
         assert!(parse("2 * (3 + 4) - 5 % 6)").is_err());
         assert!(parse("--3").is_err());
+        assert!(parse("(5 % 3)  2").is_err(),);
     }
 
     #[test]
