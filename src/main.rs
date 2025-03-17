@@ -1,5 +1,3 @@
-use std::io::stdout;
-
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{
     input::{Input, Stream},
