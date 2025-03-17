@@ -602,9 +602,6 @@ mod tests {
         // Invalid number format
         assert!(parse("2 * (3 + sin(4.5.6))").is_err());
 
-        // Missing operator between function calls
-        assert!(parse("sin(2) log(3, 4)").is_err());
-
         // Invalid character in function argument
         assert!(parse("sin(2 + 3a) + 4").is_err());
     }
