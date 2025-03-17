@@ -51,6 +51,7 @@ where
             Token::Ident("rad") => UnaryFn::Rad,
             Token::Ident("deg") => UnaryFn::Deg,
         }
+        .labelled("ident")
         .then(
             expr.clone()
                 .padded_by(whitespace.clone())
@@ -59,11 +60,29 @@ where
         .map(|(func, arg)| Expr::UnaryFnCall {
             function: func,
             arg: Box::new(arg),
-        })
-        .labelled("function call");
+        });
+
+        let binary_fn_call = select! {
+            Token::Ident("log") => BinaryFn::Log,
+            Token::Ident("nroot") => BinaryFn::NRoot,
+        }
+        .labelled("ident")
+        .then(
+            expr.clone()
+                .then_ignore(just(Token::Ctrl(',')))
+                .then(expr.clone())
+                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
+        )
+        .map(|(func, (arg1, arg2))| Expr::BinaryFnCall {
+            function: func,
+            arg1: Box::new(arg1),
+            arg2: Box::new(arg2),
+        });
 
         let atomic = choice((
+            number.clone(),
             unary_fn_call,
+            binary_fn_call,
             expr.clone()
                 .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
         ));
@@ -71,36 +90,38 @@ where
         let prefixed = select! {
             Token::Operator("-") => UnaryOp::Neg
         }
-        .then(atomic.clone())
+        .labelled("prefix operator")
+        .then(atomic.clone().and_is(number.clone().not()))
         .map(|(op, rhs)| Expr::UnaryOp {
-            op: op,
+            op,
             arg: Box::new(rhs),
-        });
+        })
+        .or(atomic.clone());
 
         let postfixed = prefixed
             .clone()
-            .or(atomic.clone())
-            .or(number.clone())
-            .then(select! {
-                Token::Operator("!") => UnaryOp::Fac
-            })
+            .then(
+                select! {
+                    Token::Operator("!") => UnaryOp::Fac
+                }
+                .labelled("postfix operator"),
+            )
             .map(|(lhs, op)| Expr::UnaryOp {
-                op: op,
+                op,
                 arg: Box::new(lhs),
-            });
+            })
+            .or(prefixed);
 
-        let term = postfixed
-            .or(prefixed)
-            .or(atomic)
-            .or(number.clone())
-            .padded_by(whitespace.clone())
-            .labelled("term");
+        let term = postfixed.padded_by(whitespace.clone()).boxed();
 
         let power = term
             .clone()
-            .then(select! {
-                Token::Operator("^") => BinaryOp::Pow
-            })
+            .then(
+                select! {
+                    Token::Operator("^") => BinaryOp::Pow
+                }
+                .labelled("infix operator"),
+            )
             .repeated()
             .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
                 op,
@@ -124,6 +145,7 @@ where
                 Token::Operator("/") => BinaryOp::Div,
                 Token::Operator("%") => BinaryOp::Rem
             }
+            .labelled("infix operator")
             .then(powers)
             .repeated(),
             |lhs, (op, rhs)| Expr::BinaryOp {
@@ -138,6 +160,7 @@ where
                 Token::Operator("+") => BinaryOp::Add,
                 Token::Operator("-") => BinaryOp::Sub
             }
+            .labelled("infix operator")
             .then(product)
             .repeated(),
             |lhs, (op, rhs)| Expr::BinaryOp {
@@ -181,7 +204,7 @@ mod tests {
         use chumsky::input::Stream;
         use logos::Logos;
 
-        let token_iter = Token::lexer(&input).spanned().map(|(tok, span)| match tok {
+        let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
             Ok(tok) => (tok, span.into()),
             Err(()) => (Token::Error, span.into()),
         });
