@@ -1,12 +1,7 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
-use chumsky::{
-    input::{Input, Stream},
-    prelude::*,
-};
 use clap::Parser as ClapParser;
 use dialoguer::{BasicHistory, theme::ColorfulTheme};
-use logos::Logos;
-use seva::{context::Context, eval::eval, lexer::Token, parser::parser};
+use seva::{context::Context, eval::eval, parser::expr};
 
 fn main() {
     let context = Context::parse();
@@ -23,33 +18,31 @@ fn main() {
                 break;
             }
 
-            let token_iter = Token::lexer(&input).spanned().map(|(tok, span)| match tok {
-                Ok(tok) => (tok, span.into()),
-                Err(()) => (Token::Error, span.into()),
-            });
+            match expr(&input) {
+                Ok(out) => println!("{}", out),
+                Err(err) => println!("{}", err),
+            };
 
-            let token_stream = Stream::from_iter(token_iter).map((0..input.len()).into(), |x| x);
-
-            match parser().parse(token_stream).into_result() {
-                Ok(expr) => match eval(expr, &context) {
-                    Ok(out) => println!("{}", out),
-                    Err(err) => println!("{}", err),
-                },
-                Err(errs) => {
-                    for err in errs {
-                        Report::build(ReportKind::Error, ("", err.span().into_range()))
-                            .with_message(err.to_string())
-                            .with_label(
-                                Label::new(("", err.span().into_range()))
-                                    .with_message(err.to_string())
-                                    .with_color(Color::Red),
-                            )
-                            .finish()
-                            .print(("", Source::from(&input)))
-                            .unwrap();
-                    }
-                }
-            }
+            //     match parser().parse(token_stream).into_result() {
+            //         Ok(expr) => match eval(expr, &context) {
+            //             Ok(out) => println!("{}", out),
+            //             Err(err) => println!("{}", err),
+            //         },
+            //         Err(errs) => {
+            //             for err in errs {
+            //                 Report::build(ReportKind::Error, ("", err.span().into_range()))
+            //                     .with_message(err.to_string())
+            //                     .with_label(
+            //                         Label::new(("", err.span().into_range()))
+            //                             .with_message(err.to_string())
+            //                             .with_color(Color::Red),
+            //                     )
+            //                     .finish()
+            //                     .print(("", Source::from(&input)))
+            //                     .unwrap();
+            //             }
+            //         }
+            //     }
         }
     }
 }

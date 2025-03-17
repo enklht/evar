@@ -1,165 +1,187 @@
-use crate::lexer::Token;
 use crate::types::*;
 
-use chumsky::input::ValueInput;
-use chumsky::prelude::*;
+use nom::branch::alt;
+use nom::character::complete::{alpha1, alphanumeric0, char, one_of, space0};
+use nom::combinator::{all_consuming, map_res, not, peek, recognize};
+use nom::multi::many0;
+use nom::number::complete::double;
+use nom::sequence::{delimited, preceded, separated_pair, terminated};
+use nom::{Err, IResult, Parser};
 
-#[allow(clippy::let_and_return)]
-pub fn parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
-where
-    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
-{
-    recursive(|expr| {
-        let whitespace = just(Token::Space).or_not();
+fn unary_function_to_enum(name: &str) -> Result<UnaryFn, ()> {
+    match name {
+        "sin" => Ok(UnaryFn::Sin),
+        "cos" => Ok(UnaryFn::Cos),
+        "tan" => Ok(UnaryFn::Tan),
+        "sec" => Ok(UnaryFn::Sec),
+        "csc" => Ok(UnaryFn::Csc),
+        "cot" => Ok(UnaryFn::Cot),
+        "asin" => Ok(UnaryFn::Asin),
+        "acos" => Ok(UnaryFn::Acos),
+        "atan" => Ok(UnaryFn::Atan),
+        "asec" => Ok(UnaryFn::Asec),
+        "acsc" => Ok(UnaryFn::Acsc),
+        "acot" => Ok(UnaryFn::Acot),
+        "sinh" => Ok(UnaryFn::Sinh),
+        "cosh" => Ok(UnaryFn::Cosh),
+        "tanh" => Ok(UnaryFn::Tanh),
+        "floor" => Ok(UnaryFn::Floor),
+        "ceil" => Ok(UnaryFn::Ceil),
+        "round" => Ok(UnaryFn::Round),
+        "abs" => Ok(UnaryFn::Abs),
+        "sqrt" => Ok(UnaryFn::Sqrt),
+        "exp" => Ok(UnaryFn::Exp),
+        "exp2" => Ok(UnaryFn::Exp2),
+        "ln" => Ok(UnaryFn::Ln),
+        "log10" => Ok(UnaryFn::Log10),
+        "rad" => Ok(UnaryFn::Rad),
+        "deg" => Ok(UnaryFn::Deg),
+        _ => Err(()),
+    }
+}
 
-        let number = just(Token::Operator("-"))
-            .or_not()
-            .then(select! {
-                Token::Number(n) => n
-            })
-            .map(|(sign, n)| match sign {
-                Some(_) => Expr::Number(-n),
-                None => Expr::Number(n),
-            });
+fn number(input: &str) -> IResult<&str, Expr> {
+    let (input, n) = double(input)?;
+    Ok((input, Expr::Number(n)))
+}
 
-        let unary_fn_call = select! {
-            Token::Ident("sin") => UnaryFn::Sin,
-            Token::Ident("cos") => UnaryFn::Cos,
-            Token::Ident("tan") => UnaryFn::Tan,
-            Token::Ident("sec") => UnaryFn::Sec,
-            Token::Ident("csc") => UnaryFn::Csc,
-            Token::Ident("cot") => UnaryFn::Cot,
-            Token::Ident("asin") => UnaryFn::Asin,
-            Token::Ident("acos") => UnaryFn::Acos,
-            Token::Ident("atan") => UnaryFn::Atan,
-            Token::Ident("asec") => UnaryFn::Asec,
-            Token::Ident("acsc") => UnaryFn::Acsc,
-            Token::Ident("acot") => UnaryFn::Acot,
-            Token::Ident("sinh") => UnaryFn::Sinh,
-            Token::Ident("cosh") => UnaryFn::Cosh,
-            Token::Ident("tanh") => UnaryFn::Tanh,
-            Token::Ident("floor") => UnaryFn::Floor,
-            Token::Ident("ceil") => UnaryFn::Ceil,
-            Token::Ident("round") => UnaryFn::Round,
-            Token::Ident("abs") => UnaryFn::Abs,
-            Token::Ident("sqrt") => UnaryFn::Sqrt,
-            Token::Ident("exp") => UnaryFn::Exp,
-            Token::Ident("exp2") => UnaryFn::Exp2,
-            Token::Ident("ln") => UnaryFn::Ln,
-            Token::Ident("log10") => UnaryFn::Log10,
-            Token::Ident("rad") => UnaryFn::Rad,
-            Token::Ident("deg") => UnaryFn::Deg,
-        }
-        .then(
-            expr.clone()
-                .padded_by(whitespace.clone())
-                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
-        )
-        .map(|(func, arg)| Expr::UnaryFnCall {
-            function: func,
+fn ident(input: &str) -> IResult<&str, &str> {
+    let (input, ident) = recognize(alpha1.and_then(alphanumeric0)).parse(input)?;
+    Ok((input, ident))
+}
+
+fn unary_fn_call(input: &str) -> IResult<&str, Expr> {
+    let (input, function) = map_res(ident, unary_function_to_enum).parse(input)?;
+    let (input, arg) = delimited(char('('), expr, char(')')).parse(input)?;
+    Ok((
+        input,
+        Expr::UnaryFnCall {
+            function,
             arg: Box::new(arg),
-        });
+        },
+    ))
+}
 
-        let binary_fn_call = select! {
-            Token::Ident("log") => BinaryFn::Log,
-            Token::Ident("nroot") => BinaryFn::NRoot,
-        }
-        .then(
-            expr.clone()
-                .then_ignore(just(Token::Ctrl(',')))
-                .then(expr.clone())
-                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
-        )
-        .map(|(func, (arg1, arg2))| Expr::BinaryFnCall {
-            function: func,
-            arg1: Box::new(arg1),
-            arg2: Box::new(arg2),
-        });
+fn binary_fn_call(input: &str) -> IResult<&str, Expr> {
+    todo!()
+}
 
-        let atomic = choice((
-            number.clone(),
-            unary_fn_call,
-            binary_fn_call,
-            expr.clone()
-                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
-        ));
+fn atom(input: &str) -> IResult<&str, Expr> {
+    alt((
+        number,
+        unary_fn_call,
+        binary_fn_call,
+        delimited(char('('), expr, char(')')),
+    ))
+    .parse(input)
+}
 
-        let prefixed = select! {
-            Token::Operator("-") => UnaryOp::Neg
-        }
-        .then(atomic.clone().and_is(number.clone().not()))
-        .map(|(op, rhs)| Expr::UnaryOp {
-            op,
-            arg: Box::new(rhs),
-        })
-        .or(atomic.clone());
+fn prefixed(input: &str) -> IResult<&str, Expr> {
+    alt((
+        preceded(char('-'), atom).map(|e| Expr::UnaryOp {
+            op: UnaryOp::Neg,
+            arg: Box::new(e),
+        }),
+        atom,
+    ))
+    .parse(input)
+}
 
-        let postfixed = prefixed
-            .clone()
-            .then(select! {
-                Token::Operator("!") => UnaryOp::Fac
-            })
-            .map(|(lhs, op)| Expr::UnaryOp {
+fn postfixed(input: &str) -> IResult<&str, Expr> {
+    alt((
+        terminated(atom, char('!')).map(|e| Expr::UnaryOp {
+            op: UnaryOp::Fac,
+            arg: Box::new(e),
+        }),
+        atom,
+    ))
+    .parse(input)
+}
+
+fn term(input: &str) -> IResult<&str, Expr> {
+    delimited(space0, postfixed, space0).parse(input)
+}
+
+fn power(input: &str) -> IResult<&str, Expr> {
+    let (input, (lhs, rhs)) = separated_pair(term, char('^'), power).parse(input)?;
+    Ok((
+        input,
+        Expr::BinaryOp {
+            op: BinaryOp::Pow,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        },
+    ))
+}
+
+fn powers(input: &str) -> IResult<&str, Expr> {
+    let (input, first) = power(input)?;
+    let (input, tail) = many0(preceded(peek(not(number)), power)).parse(input)?;
+    Ok((
+        input,
+        tail.into_iter().fold(first, |acc, rhs| Expr::BinaryOp {
+            op: BinaryOp::Mul,
+            lhs: Box::new(acc),
+            rhs: Box::new(rhs),
+        }),
+    ))
+}
+
+fn product(input: &str) -> IResult<&str, Expr> {
+    let (input, first) = powers(input)?;
+    let (input, tail) = many0((
+        one_of("*/").map(|c| match c {
+            '*' => BinaryOp::Mul,
+            '/' => BinaryOp::Div,
+            _ => unreachable!(),
+        }),
+        powers,
+    ))
+    .parse(input)?;
+
+    Ok((
+        input,
+        tail.into_iter()
+            .fold(first, |acc, (op, rhs)| Expr::BinaryOp {
                 op,
-                arg: Box::new(lhs),
-            })
-            .or(prefixed);
-
-        let term = postfixed.padded_by(whitespace.clone());
-
-        let power = term
-            .clone()
-            .then(select! {
-                Token::Operator("^") => BinaryOp::Pow
-            })
-            .repeated()
-            .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
-                op,
-                lhs: Box::new(lhs),
+                lhs: Box::new(acc),
                 rhs: Box::new(rhs),
-            });
+            }),
+    ))
+}
 
-        let powers = power
-            .clone()
-            .foldl(power.and_is(number.not()).repeated(), |lhs, rhs| {
-                Expr::BinaryOp {
-                    op: BinaryOp::Mul,
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                }
-            });
+fn sum(input: &str) -> IResult<&str, Expr> {
+    let (input, first) = powers(input)?;
+    let (input, tail) = many0((
+        one_of("+-").map(|c| match c {
+            '+' => BinaryOp::Add,
+            '-' => BinaryOp::Sub,
+            _ => unreachable!(),
+        }),
+        powers,
+    ))
+    .parse(input)?;
 
-        let product = powers.clone().foldl(
-            select! {
-                Token::Operator("*") => BinaryOp::Mul,
-                Token::Operator("/") => BinaryOp::Div,
-                Token::Operator("%") => BinaryOp::Rem
-            }
-            .then(powers)
-            .repeated(),
-            |lhs, (op, rhs)| Expr::BinaryOp {
+    Ok((
+        input,
+        tail.into_iter()
+            .fold(first, |acc, (op, rhs)| Expr::BinaryOp {
                 op,
-                lhs: Box::new(lhs),
+                lhs: Box::new(acc),
                 rhs: Box::new(rhs),
-            },
-        );
+            }),
+    ))
+}
 
-        let sum = product.clone().foldl(
-            select! {
-                Token::Operator("+") => BinaryOp::Add,
-                Token::Operator("-") => BinaryOp::Sub
-            }
-            .then(product)
-            .repeated(),
-            |lhs, (op, rhs)| Expr::BinaryOp {
-                op,
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
-            },
-        );
+fn expr(input: &str) -> IResult<&str, Expr> {
+    all_consuming(sum).parse(input)
+}
 
-        sum
-    })
+pub fn parse(input: &str) -> Result<Expr, String> {
+    match all_consuming(sum).parse(input) {
+        Ok((_, expr)) => Ok(expr),
+        Err(e) => Err(format!("{}", e)),
+    }
 }
 
 #[cfg(test)]
@@ -187,24 +209,7 @@ mod tests {
     }
 
     fn parse(input: &str) -> Result<Expr, String> {
-        use crate::lexer::Token;
-        use chumsky::input::Stream;
-        use logos::Logos;
-
-        let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
-            Ok(tok) => (tok, span.into()),
-            Err(()) => (Token::Error, span.into()),
-        });
-
-        let token_stream =
-            Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
-
-        parser().parse(token_stream).into_result().map_err(|_| {
-            format!(
-                "failed to parse {:?}",
-                token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
-            )
-        })
+        parse(input).map_err(|e| format!("{}", e))
     }
 
     #[test]
