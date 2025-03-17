@@ -89,7 +89,7 @@ where
         }
         .then(atomic.clone().and_is(number.clone().not()))
         .map(|(op, rhs)| Expr::UnaryOp {
-            op: op,
+            op,
             arg: Box::new(rhs),
         })
         .or(atomic.clone());
@@ -100,7 +100,7 @@ where
                 Token::Operator("!") => UnaryOp::Fac
             })
             .map(|(lhs, op)| Expr::UnaryOp {
-                op: op,
+                op,
                 arg: Box::new(lhs),
             })
             .or(prefixed);
@@ -191,7 +191,7 @@ mod tests {
         use chumsky::input::Stream;
         use logos::Logos;
 
-        let token_iter = Token::lexer(&input).spanned().map(|(tok, span)| match tok {
+        let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
             Ok(tok) => (tok, span.into()),
             Err(()) => (Token::Error, span.into()),
         });
