@@ -23,6 +23,7 @@ pub enum Token<'a> {
 
     #[token("(", |_| '(')]
     #[token(")", |_| ')')]
+    #[token(",", |_| ',')]
     Ctrl(char),
 
     #[regex(r"[[:alpha:]][[:alnum:]]*")]

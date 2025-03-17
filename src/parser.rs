@@ -20,8 +20,7 @@ where
             .map(|(sign, n)| match sign {
                 Some(_) => Expr::Number(-n),
                 None => Expr::Number(n),
-            })
-            .labelled("number");
+            });
 
         let unary_fn_call = select! {
             Token::Ident("sin") => UnaryFn::Sin,
@@ -59,11 +58,28 @@ where
         .map(|(func, arg)| Expr::UnaryFnCall {
             function: func,
             arg: Box::new(arg),
-        })
-        .labelled("function call");
+        });
+
+        let binary_fn_call = select! {
+            Token::Ident("log") => BinaryFn::Log,
+            Token::Ident("nroot") => BinaryFn::NRoot,
+        }
+        .then(
+            expr.clone()
+                .then_ignore(just(Token::Ctrl(',')))
+                .then(expr.clone())
+                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
+        )
+        .map(|(func, (arg1, arg2))| Expr::BinaryFnCall {
+            function: func,
+            arg1: Box::new(arg1),
+            arg2: Box::new(arg2),
+        });
 
         let atomic = choice((
+            number.clone(),
             unary_fn_call,
+            binary_fn_call,
             expr.clone()
                 .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
         ));
@@ -71,30 +87,25 @@ where
         let prefixed = select! {
             Token::Operator("-") => UnaryOp::Neg
         }
-        .then(atomic.clone())
+        .then(atomic.clone().and_is(number.clone().not()))
         .map(|(op, rhs)| Expr::UnaryOp {
             op: op,
             arg: Box::new(rhs),
-        });
+        })
+        .or(atomic.clone());
 
         let postfixed = prefixed
             .clone()
-            .or(atomic.clone())
-            .or(number.clone())
             .then(select! {
                 Token::Operator("!") => UnaryOp::Fac
             })
             .map(|(lhs, op)| Expr::UnaryOp {
                 op: op,
                 arg: Box::new(lhs),
-            });
+            })
+            .or(prefixed);
 
-        let term = postfixed
-            .or(prefixed)
-            .or(atomic)
-            .or(number.clone())
-            .padded_by(whitespace.clone())
-            .labelled("term");
+        let term = postfixed.padded_by(whitespace.clone());
 
         let power = term
             .clone()
@@ -149,7 +160,6 @@ where
 
         sum
     })
-    .labelled("expression")
 }
 
 #[cfg(test)]
