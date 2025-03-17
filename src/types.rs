@@ -1,28 +1,28 @@
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Number(f64),
-    UnaryFunctionCall {
-        function: UnaryFunction,
+    UnaryFnCall {
+        function: UnaryFn,
         arg: Box<Expr>,
     },
-    BinaryFunctionCall {
-        function: BinaryFunction,
+    BinaryFnCall {
+        function: BinaryFn,
         arg1: Box<Expr>,
         arg2: Box<Expr>,
     },
-    UnaryOperation {
-        operator: UnaryOperator,
+    UnaryOp {
+        op: UnaryOp,
         arg: Box<Expr>,
     },
-    BinaryOperation {
-        operator: BinaryOperator,
+    BinaryOp {
+        op: BinaryOp,
         lhs: Box<Expr>,
         rhs: Box<Expr>,
     },
 }
 
-#[derive(Debug, PartialEq)]
-pub enum UnaryFunction {
+#[derive(Debug, PartialEq, Clone)]
+pub enum UnaryFn {
     Sin,
     Cos,
     Tan,
@@ -51,20 +51,20 @@ pub enum UnaryFunction {
     Deg,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum BinaryFunction {
+#[derive(Debug, PartialEq, Clone)]
+pub enum BinaryFn {
     Log,
     NRoot,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum UnaryOperator {
+#[derive(Debug, PartialEq, Clone)]
+pub enum UnaryOp {
     Neg,
     Fac,
 }
 
-#[derive(Debug, PartialEq)]
-pub enum BinaryOperator {
+#[derive(Debug, PartialEq, Clone)]
+pub enum BinaryOp {
     Add,
     Sub,
     Mul,

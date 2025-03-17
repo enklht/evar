@@ -20,8 +20,12 @@ fn factorial(n: f64) -> Result<f64, EvalError> {
 pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
     match expr {
         Expr::Number(f) => Ok(f),
-        Expr::BinaryOperation { operator, lhs, rhs } => {
-            use BinaryOperator::*;
+        Expr::BinaryOp {
+            op: operator,
+            lhs,
+            rhs,
+        } => {
+            use BinaryOp::*;
             match operator {
                 Add => Ok(eval(*lhs, context)? + eval(*rhs, context)?),
                 Sub => Ok(eval(*lhs, context)? - eval(*rhs, context)?),
@@ -31,16 +35,16 @@ pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
                 Pow => Ok(eval(*lhs, context)?.powf(eval(*rhs, context)?)),
             }
         }
-        Expr::UnaryOperation { operator, arg } => {
-            use UnaryOperator::*;
+        Expr::UnaryOp { op: operator, arg } => {
+            use UnaryOp::*;
             match operator {
                 Neg => Ok(-eval(*arg, context)?),
                 Fac => factorial(eval(*arg, context)?),
             }
         }
-        Expr::UnaryFunctionCall { function, arg } => {
+        Expr::UnaryFnCall { function, arg } => {
             use AngleUnit::*;
-            use UnaryFunction::*;
+            use UnaryFn::*;
             match (function, &context.angle_unit) {
                 (Sin, Radian) => Ok(eval(*arg, context)?.sin()),
                 (Sin, Degree) => Ok(eval(*arg, context)?.to_radians().sin()),
@@ -82,12 +86,12 @@ pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
                 (Deg, _) => Ok(eval(*arg, context)?.to_degrees()),
             }
         }
-        Expr::BinaryFunctionCall {
+        Expr::BinaryFnCall {
             function,
             arg1,
             arg2,
         } => {
-            use BinaryFunction::*;
+            use BinaryFn::*;
             match (function, &context.angle_unit) {
                 (Log, _) => Ok(eval(*arg1, context)?.log(eval(*arg2, context)?)),
                 (NRoot, _) => Ok(eval(*arg1, context)?.powf(eval(*arg2, context)?.recip())),
