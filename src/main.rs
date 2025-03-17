@@ -1,25 +1,21 @@
+use std::io::stdin;
+
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{
     input::{Input, Stream},
     prelude::*,
 };
 use clap::Parser as ClapParser;
-use dialoguer::{BasicHistory, theme::ColorfulTheme};
 use logos::Logos;
 use seva::{context::Context, eval::eval, lexer::Token, parser::parser};
 
 fn main() {
     let context = Context::parse();
 
-    let mut history = BasicHistory::new().max_entries(100).no_duplicates(true);
-
     loop {
-        if let Ok(input) = dialoguer::Input::<String>::with_theme(&ColorfulTheme::default())
-            .with_prompt("seva")
-            .history_with(&mut history)
-            .interact_text()
-        {
-            if input == "exit" {
+        let mut input = String::new();
+        if let Ok(_) = stdin().read_line(&mut input) {
+            if input == "exit".to_string() {
                 break;
             }
 
