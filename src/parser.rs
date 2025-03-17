@@ -105,7 +105,7 @@ where
             })
             .or(prefixed);
 
-        let term = postfixed.padded_by(whitespace.clone());
+        let term = postfixed.padded_by(whitespace.clone()).boxed();
 
         let power = term
             .clone()
