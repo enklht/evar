@@ -170,9 +170,8 @@ where
             },
         );
 
-        sum
+        sum.labelled("expression").as_context()
     })
-    .labelled("expression")
 }
 
 #[cfg(test)]
