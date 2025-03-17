@@ -37,7 +37,16 @@ fn main() {
                 },
                 Err(errs) => {
                     for err in errs {
-                        println!("{}", err.to_string())
+                        Report::build(ReportKind::Error, ("", err.span().into_range()))
+                            .with_message(err.to_string())
+                            .with_label(
+                                Label::new(("", err.span().into_range()))
+                                    .with_message(err.to_string())
+                                    .with_color(Color::Red),
+                            )
+                            .finish()
+                            .print(("", Source::from(&input)))
+                            .unwrap();
                     }
                 }
             }

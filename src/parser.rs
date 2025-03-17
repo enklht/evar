@@ -68,20 +68,6 @@ where
                 .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
         ));
 
-        let polyatomic = number.clone().or(atomic.clone()).foldl(
-            whitespace
-                .clone()
-                .or_not()
-                .ignore_then(atomic.clone())
-                .repeated()
-                .at_least(1),
-            |acc, rhs| Expr::BinaryOp {
-                op: BinaryOp::Mul,
-                lhs: Box::new(acc),
-                rhs: Box::new(rhs),
-            },
-        );
-
         let prefixed = select! {
             Token::Operator("-") => UnaryOp::Neg
         }
@@ -93,6 +79,7 @@ where
 
         let postfixed = prefixed
             .clone()
+            .or(atomic.clone())
             .or(number.clone())
             .then(select! {
                 Token::Operator("!") => UnaryOp::Fac
@@ -105,7 +92,7 @@ where
         let term = postfixed
             .or(prefixed)
             .or(atomic)
-            .or(number)
+            .or(number.clone())
             .padded_by(whitespace.clone())
             .labelled("term");
 
@@ -121,13 +108,23 @@ where
                 rhs: Box::new(rhs),
             });
 
-        let product = polyatomic.clone().or(power.clone()).foldl(
+        let powers = power
+            .clone()
+            .foldl(power.and_is(number.not()).repeated(), |lhs, rhs| {
+                Expr::BinaryOp {
+                    op: BinaryOp::Mul,
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                }
+            });
+
+        let product = powers.clone().foldl(
             select! {
                 Token::Operator("*") => BinaryOp::Mul,
                 Token::Operator("/") => BinaryOp::Div,
                 Token::Operator("%") => BinaryOp::Rem
             }
-            .then(polyatomic.or(power))
+            .then(powers)
             .repeated(),
             |lhs, (op, rhs)| Expr::BinaryOp {
                 op,
