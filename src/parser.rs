@@ -20,7 +20,8 @@ where
             .map(|(sign, n)| match sign {
                 Some(_) => Expr::Number(-n),
                 None => Expr::Number(n),
-            });
+            })
+            .labelled("number");
 
         let unary_fn_call = select! {
             Token::Ident("sin") => UnaryFn::Sin,
@@ -50,6 +51,7 @@ where
             Token::Ident("rad") => UnaryFn::Rad,
             Token::Ident("deg") => UnaryFn::Deg,
         }
+        .labelled("ident")
         .then(
             expr.clone()
                 .padded_by(whitespace.clone())
@@ -64,6 +66,7 @@ where
             Token::Ident("log") => BinaryFn::Log,
             Token::Ident("nroot") => BinaryFn::NRoot,
         }
+        .labelled("ident")
         .then(
             expr.clone()
                 .then_ignore(just(Token::Ctrl(',')))
@@ -87,6 +90,7 @@ where
         let prefixed = select! {
             Token::Operator("-") => UnaryOp::Neg
         }
+        .labelled("prefix operator")
         .then(atomic.clone().and_is(number.clone().not()))
         .map(|(op, rhs)| Expr::UnaryOp {
             op,
@@ -96,9 +100,12 @@ where
 
         let postfixed = prefixed
             .clone()
-            .then(select! {
-                Token::Operator("!") => UnaryOp::Fac
-            })
+            .then(
+                select! {
+                    Token::Operator("!") => UnaryOp::Fac
+                }
+                .labelled("postfix operator"),
+            )
             .map(|(lhs, op)| Expr::UnaryOp {
                 op,
                 arg: Box::new(lhs),
@@ -109,9 +116,12 @@ where
 
         let power = term
             .clone()
-            .then(select! {
-                Token::Operator("^") => BinaryOp::Pow
-            })
+            .then(
+                select! {
+                    Token::Operator("^") => BinaryOp::Pow
+                }
+                .labelled("infix operator"),
+            )
             .repeated()
             .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
                 op,
@@ -135,6 +145,7 @@ where
                 Token::Operator("/") => BinaryOp::Div,
                 Token::Operator("%") => BinaryOp::Rem
             }
+            .labelled("infix operator")
             .then(powers)
             .repeated(),
             |lhs, (op, rhs)| Expr::BinaryOp {
@@ -149,6 +160,7 @@ where
                 Token::Operator("+") => BinaryOp::Add,
                 Token::Operator("-") => BinaryOp::Sub
             }
+            .labelled("infix operator")
             .then(product)
             .repeated(),
             |lhs, (op, rhs)| Expr::BinaryOp {
@@ -160,6 +172,7 @@ where
 
         sum
     })
+    .labelled("expression")
 }
 
 #[cfg(test)]
