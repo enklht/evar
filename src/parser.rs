@@ -397,79 +397,76 @@ mod tests {
     //
     #[test]
     fn mixed_operations_and_number_notations() {
-        // // Mixed operations
-        // assert_eq!(
-        //     parse("sin(2 + 3) * 4"),
-        //     Ok(binop!(
-        //         Mul,
-        //         Expr::UnaryFnCall {
-        //             function: UnaryFn::Sin,
-        //             arg: Box::new(binop!(Add, Number(2.), Number(3.))),
-        //         },
-        //         Number(4.)
-        //     ))
-        // );
-        // assert_eq!(
-        //     parse("2 * log(3 + 4, 10)"),
-        //     Ok(binop!(
-        //         Mul,
-        //         Number(2.),
-        //         Expr::BinaryFnCall {
-        //             function: BinaryFn::Log,
-        //             arg1: Box::new(binop!(Add, Number(3.), Number(4.))),
-        //             arg2: Box::new(Number(10.)),
-        //         }
-        //     ))
-        // );
-        // assert_eq!(
-        //     parse("2 * sin(3 + 4) - log(5, 6)"),
-        //     Ok(binop!(
-        //         Sub,
-        //         binop!(
-        //             Mul,
-        //             Number(2.),
-        //             Expr::UnaryFnCall {
-        //                 function: UnaryFn::Sin,
-        //                 arg: Box::new(binop!(Add, Number(3.), Number(4.))),
-        //             }
-        //         ),
-        //         Expr::BinaryFnCall {
-        //             function: BinaryFn::Log,
-        //             arg1: Box::new(Number(5.)),
-        //             arg2: Box::new(Number(6.)),
-        //         }
-        //     ))
-        // );
-        // assert_eq!(
-        //     parse("2 * (3 + sin(4))"),
-        //     Ok(binop!(
-        //         Mul,
-        //         Number(2.),
-        //         binop!(
-        //             Add,
-        //             Number(3.),
-        //             Expr::UnaryFnCall {
-        //                 function: UnaryFn::Sin,
-        //                 arg: Box::new(Number(4.)),
-        //             }
-        //         )
-        //     ))
-        // );
-        // assert_eq!(
-        //     parse("log(2, 3) + sin(4)"),
-        //     Ok(binop!(
-        //         Add,
-        //         Expr::BinaryFnCall {
-        //             function: BinaryFn::Log,
-        //             arg1: Box::new(Number(2.)),
-        //             arg2: Box::new(Number(3.)),
-        //         },
-        //         Expr::UnaryFnCall {
-        //             function: UnaryFn::Sin,
-        //             arg: Box::new(Number(4.)),
-        //         }
-        //     ))
-        // );
+        // Mixed operations
+        assert_eq!(
+            parse("sin(2 + 3) * 4"),
+            Ok(binop!(
+                Mul,
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![binop!(Add, Number(2.), Number(3.))],
+                },
+                Number(4.)
+            ))
+        );
+        assert_eq!(
+            parse("2 * log(3 + 4, 10)"),
+            Ok(binop!(
+                Mul,
+                Number(2.),
+                Expr::FnCall {
+                    fname: "log".into(),
+                    args: vec![binop!(Add, Number(3.), Number(4.)), Number(10.)],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("2 * sin(3 + 4) - log(5, 6)"),
+            Ok(binop!(
+                Sub,
+                binop!(
+                    Mul,
+                    Number(2.),
+                    Expr::FnCall {
+                        fname: "sin".into(),
+                        args: vec![binop!(Add, Number(3.), Number(4.))],
+                    }
+                ),
+                Expr::FnCall {
+                    fname: "log".into(),
+                    args: vec![Number(5.), Number(6.)],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("2 * (3 + sin(4))"),
+            Ok(binop!(
+                Mul,
+                Number(2.),
+                binop!(
+                    Add,
+                    Number(3.),
+                    Expr::FnCall {
+                        fname: "sin".into(),
+                        args: vec![Number(4.)],
+                    }
+                )
+            ))
+        );
+        assert_eq!(
+            parse("log(2, 3) + sin(4)"),
+            Ok(binop!(
+                Add,
+                Expr::FnCall {
+                    fname: "log".into(),
+                    args: vec![Number(2.), Number(3.)],
+                },
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![Number(4.)],
+                }
+            ))
+        );
 
         // Different number notations
         assert_eq!(
@@ -509,37 +506,35 @@ mod tests {
                 Number(2.5)
             ))
         );
-        // assert_eq!(
-        //     parse("log(1e-3, 2.5) * 10"),
-        //     Ok(binop!(
-        //         Mul,
-        //         Expr::BinaryFnCall {
-        //             function: BinaryFn::Log,
-        //             arg1: Box::new(Number(1e-3)),
-        //             arg2: Box::new(Number(2.5)),
-        //         },
-        //         Number(10.)
-        //     ))
-        // );
-        // assert_eq!(
-        //     parse("2 * sin(2.5e2) - log(1, 1e3)"),
-        //     Ok(binop!(
-        //         Sub,
-        //         binop!(
-        //             Mul,
-        //             Number(2.),
-        //             Expr::UnaryFnCall {
-        //                 function: UnaryFn::Sin,
-        //                 arg: Box::new(Number(2.5e2)),
-        //             }
-        //         ),
-        //         Expr::BinaryFnCall {
-        //             function: BinaryFn::Log,
-        //             arg1: Box::new(Number(1.)),
-        //             arg2: Box::new(Number(1e3)),
-        //         }
-        //     ))
-        // );
+        assert_eq!(
+            parse("log(1e-3, 2.5) * 10"),
+            Ok(binop!(
+                Mul,
+                Expr::FnCall {
+                    fname: "log".into(),
+                    args: vec![Number(1e-3), Number(2.5)],
+                },
+                Number(10.)
+            ))
+        );
+        assert_eq!(
+            parse("2 * sin(2.5e2) - log(1, 1e3)"),
+            Ok(binop!(
+                Sub,
+                binop!(
+                    Mul,
+                    Number(2.),
+                    Expr::FnCall {
+                        fname: "sin".into(),
+                        args: vec![Number(2.5e2)],
+                    }
+                ),
+                Expr::FnCall {
+                    fname: "log".into(),
+                    args: vec![Number(1.), Number(1e3)],
+                }
+            ))
+        );
 
         // Failing tests for mixed operations
 
@@ -548,9 +543,6 @@ mod tests {
 
         // Missing opening parenthesis
         assert!(parse("2 * 3 + sin 4)").is_err());
-
-        // Missing argument for sin function
-        assert!(parse("2 * sin()").is_err());
 
         // Extra comma in log function
         assert!(parse("log(2, 3,) + sin(4)").is_err());
@@ -564,20 +556,11 @@ mod tests {
         // Missing operator between function call and number
         assert!(parse("sin(4) 2 + 3").is_err());
 
-        // Invalid function name
-        assert!(parse("invalid(2, 3) + sin(4)").is_err());
-
         // Unmatched parentheses
         assert!(parse("2 * (3 + sin(4)) + (5").is_err());
 
         // Extra closing parenthesis
         assert!(parse("2 * (3 + sin(4))) + 5").is_err());
-
-        // Missing argument for log function
-        assert!(parse("log(2) + sin(4)").is_err());
-
-        // Extra argument for sin function
-        assert!(parse("sin(2, 3) + 4").is_err());
 
         // Invalid number format
         assert!(parse("2 * (3 + sin(4.5.6))").is_err());
