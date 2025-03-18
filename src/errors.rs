@@ -10,4 +10,10 @@ pub enum EvalError {
 
     #[error("overflow")]
     OverFlowError,
+
+    #[error("invalid number of arguments (expected: {expected}, found: {found})")]
+    InvalidNumberOfArgumentsError { expected: usize, found: usize },
+
+    #[error("function not found: {0}")]
+    FunctionNotFoundError(String),
 }
