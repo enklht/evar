@@ -13,7 +13,7 @@ use rustyline::{
     completion::FilenameCompleter, highlight::Highlighter, hint::HistoryHinter,
     validate::MatchingBracketValidator,
 };
-use seva::{context::Context, eval::eval, lexer::Token, parser::parser};
+use seva::{args::Args, context::Context, eval::eval, lexer::Token, parser::parser};
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
 struct RustyLineHelper {
@@ -75,7 +75,9 @@ impl Highlighter for SevaHighlighter {
 }
 
 fn main() {
-    let context = Context::parse();
+    let args = Args::parse();
+
+    let context = Context::new(args);
 
     let editor_config = Config::builder()
         .auto_add_history(true)

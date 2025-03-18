@@ -1,21 +1,56 @@
-use clap::{Parser, ValueEnum};
+use std::collections::HashMap;
 
-#[derive(ValueEnum, Debug, Clone)]
-pub enum AngleUnit {
-    Radian,
-    Degree,
+use crate::{args::Args, errors::EvalError, types::Expr};
+
+pub struct Context {
+    functions: HashMap<String, Function>,
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about)]
-pub struct Context {
-    /// Number of decimal places in output
-    #[arg(short, long, default_value_t = 10)]
-    pub fix: u8,
-    /// Radix of calculation output
-    #[arg(short, long, default_value_t = 10)]
-    pub base: u8,
-    /// Angle Unit
-    #[arg(value_enum, short, long, default_value_t = AngleUnit::Radian)]
-    pub angle_unit: AngleUnit,
+impl Context {
+    pub fn new(args: Args) -> Context {
+        let mut functions = [(
+            "sin".into(),
+            Function::External {
+                arity: 1,
+                body: |x| x.get(0).unwrap().sin(),
+            },
+        )]
+        .into();
+        Context { functions }
+    }
+
+    pub fn get_function(&self, name: &str) -> Option<&Function> {
+        self.functions.get(name)
+    }
+}
+
+pub enum Function {
+    External {
+        arity: usize,
+        body: fn(Vec<f64>) -> f64,
+    },
+    Internal {
+        arity: usize,
+        body: Expr,
+    },
+}
+
+impl Function {
+    pub fn call(&self, args: Vec<f64>) -> Result<f64, EvalError> {
+        match self {
+            Function::External { arity, body } => {
+                if args.len() == *arity {
+                    Ok(body(args))
+                } else {
+                    Err(EvalError::InvalidNumberOfArgumentsError {
+                        expected: *arity,
+                        found: args.len(),
+                    })
+                }
+            }
+            Function::Internal { arity, body } => {
+                todo!()
+            }
+        }
+    }
 }
