@@ -41,8 +41,14 @@ impl Highlighter for SevaHighlighter {
                     Ok(token) => match token {
                         Token::Number(_) => format!("{}", line[span].truecolor(245, 169, 127)),
                         Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
-                        Token::Operator(_) => format!("{}", line[span].truecolor(125, 196, 228)),
-                        Token::Ctrl('(') | Token::Ctrl(')') => {
+                        Token::Plus
+                        | Token::Minus
+                        | Token::Asterisk
+                        | Token::Slash
+                        | Token::Percent
+                        | Token::Caret
+                        | Token::Exclamation => format!("{}", line[span].truecolor(125, 196, 228)),
+                        Token::LParen | Token::RParen => {
                             format!("{}", line[span].truecolor(238, 212, 159))
                         }
                         _ => line[span].to_string(),
