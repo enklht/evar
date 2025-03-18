@@ -65,12 +65,22 @@ impl Highlighter for SevaHighlighter {
     fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
         format!("{}", hint.truecolor(91, 96, 120)).into()
     }
+    fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
+        &'s self,
+        prompt: &'p str,
+        _default: bool,
+    ) -> Cow<'b, str> {
+        format!("{}", prompt.truecolor(166, 218, 149)).into()
+    }
 }
 
 fn main() {
     let context = Context::parse();
 
-    let editor_config = Config::builder().auto_add_history(true).build();
+    let editor_config = Config::builder()
+        .auto_add_history(true)
+        .completion_type(rustyline::CompletionType::List)
+        .build();
 
     let helper = RustyLineHelper {
         completer: FilenameCompleter::new(),
@@ -82,11 +92,12 @@ fn main() {
 
     let mut editor = Editor::with_config(editor_config).unwrap();
     editor.set_helper(Some(helper));
+    editor.bind_sequence(rustyline::KeyEvent::ctrl('f'), rustyline::Cmd::CompleteHint);
 
     loop {
-        let prompt = format!("{}", "> ".green());
-        editor.helper_mut().expect("No helper").prompt = prompt.clone();
+        let prompt = "> ".to_string();
         let input = editor.readline(&prompt);
+        editor.helper_mut().expect("No helper").prompt = prompt;
 
         match input {
             Ok(input) => {
@@ -118,7 +129,6 @@ fn main() {
             }
         };
     }
-    editor.append_history("history.txt").unwrap();
 }
 
 fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
