@@ -47,46 +47,6 @@ pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
                 evaluated_args.push(eval(arg, context)?);
             }
             function.call(evaluated_args)
-            // match (function, &context.angle_unit) {
-            // (Sin, Radian) => Ok(eval(*arg, context)?.sin()),
-            // (Sin, Degree) => Ok(eval(*arg, context)?.to_radians().sin()),
-            // (Cos, Radian) => Ok(eval(*arg, context)?.cos()),
-            // (Cos, Degree) => Ok(eval(*arg, context)?.to_radians().cos()),
-            // (Tan, Radian) => Ok(eval(*arg, context)?.tan()),
-            // (Tan, Degree) => Ok(eval(*arg, context)?.to_radians().tan()),
-            // (Sec, Radian) => Ok(1.0 / eval(*arg, context)?.cos()),
-            // (Sec, Degree) => Ok(1.0 / eval(*arg, context)?.to_radians().cos()),
-            // (Csc, Radian) => Ok(1.0 / eval(*arg, context)?.sin()),
-            // (Csc, Degree) => Ok(1.0 / eval(*arg, context)?.to_radians().sin()),
-            // (Cot, Radian) => Ok(1.0 / eval(*arg, context)?.tan()),
-            // (Cot, Degree) => Ok(1.0 / eval(*arg, context)?.to_radians().tan()),
-            // (Asin, Radian) => Ok(eval(*arg, context)?.asin()),
-            // (Asin, Degree) => Ok(eval(*arg, context)?.asin().to_degrees()),
-            // (Acos, Radian) => Ok(eval(*arg, context)?.acos()),
-            // (Acos, Degree) => Ok(eval(*arg, context)?.acos().to_degrees()),
-            // (Atan, Radian) => Ok(eval(*arg, context)?.atan()),
-            // (Atan, Degree) => Ok(eval(*arg, context)?.atan().to_degrees()),
-            // (Asec, Radian) => Ok(eval(*arg, context)?.recip().acos()),
-            // (Asec, Degree) => Ok(eval(*arg, context)?.recip().acos().to_degrees()),
-            // (Acsc, Radian) => Ok(eval(*arg, context)?.recip().asin()),
-            // (Acsc, Degree) => Ok(eval(*arg, context)?.recip().asin().to_degrees()),
-            // (Acot, Radian) => Ok(eval(*arg, context)?.recip().atan()),
-            // (Acot, Degree) => Ok(eval(*arg, context)?.recip().atan().to_degrees()),
-            // (Sinh, _) => Ok(eval(*arg, context)?.sinh()),
-            // (Cosh, _) => Ok(eval(*arg, context)?.cosh()),
-            // (Tanh, _) => Ok(eval(*arg, context)?.tanh()),
-            // (Floor, _) => Ok(eval(*arg, context)?.floor()),
-            // (Ceil, _) => Ok(eval(*arg, context)?.ceil()),
-            // (Round, _) => Ok(eval(*arg, context)?.round()),
-            // (Abs, _) => Ok(eval(*arg, context)?.abs()),
-            // (Sqrt, _) => Ok(eval(*arg, context)?.sqrt()),
-            // (Exp, _) => Ok(eval(*arg, context)?.exp()),
-            // (Exp2, _) => Ok(eval(*arg, context)?.exp2()),
-            // (Ln, _) => Ok(eval(*arg, context)?.ln()),
-            // (Log10, _) => Ok(eval(*arg, context)?.log10()),
-            // (Rad, _) => Ok(eval(*arg, context)?.to_radians()),
-            // (Deg, _) => Ok(eval(*arg, context)?.to_degrees()),
-            // }
         }
     }
 }
