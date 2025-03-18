@@ -223,6 +223,33 @@ mod tests {
         assert_eq!(parse("6/3"), Ok(binop!(Div, Number(6.), Number(3.))));
         assert_eq!(parse("6%3"), Ok(binop!(Rem, Number(6.), Number(3.))));
         assert_eq!(parse("2^3"), Ok(binop!(Pow, Number(2.), Number(3.))));
+
+        // Different number notations
+        assert_eq!(
+            parse("1e3 + 2.5"),
+            Ok(binop!(Add, Number(1e3), Number(2.5)))
+        );
+        assert_eq!(
+            parse("1e-3 * 2.5"),
+            Ok(binop!(Mul, Number(1e-3), Number(2.5)))
+        );
+        assert_eq!(
+            parse("2.5e2 - 1"),
+            Ok(binop!(Sub, Number(2.5e2), Number(1.)))
+        );
+        assert_eq!(
+            parse("2.5e-2 / 1e3"),
+            Ok(binop!(Div, Number(2.5e-2), Number(1e3)))
+        );
+        assert_eq!(
+            parse("-1e3 + 2.5"),
+            Ok(binop!(Add, Number(-1e3), Number(2.5)))
+        );
+        assert_eq!(
+            parse("2.5e2 % 1e3"),
+            Ok(binop!(Rem, Number(2.5e2), Number(1e3)))
+        );
+
         assert_eq!(
             parse("2 + 3 * 4"),
             Ok(binop!(Add, Number(2.), binop!(Mul, Number(3.), Number(4.))))
@@ -339,7 +366,8 @@ mod tests {
     }
 
     #[test]
-    fn unary_function_calls() {
+    fn function_calls() {
+        // Unary function calls
         assert_eq!(
             parse("sin(0)"),
             Ok(Expr::FnCall {
@@ -356,13 +384,11 @@ mod tests {
             })
         );
 
-        // Failing tests
+        // Failing tests for unary function calls
         assert!(parse("sin(-3.)").is_err());
         assert!(parse("sin(abc)").is_err());
-    }
 
-    #[test]
-    fn binary_function_calls() {
+        // Binary function calls
         assert_eq!(
             parse("log(1, 10)"),
             Ok(Expr::FnCall {
@@ -385,8 +411,86 @@ mod tests {
             })
         );
 
-        // Failing tests
+        // Failing tests for binary function calls
         assert!(parse("log(abc, 10)").is_err());
+    }
+
+    #[test]
+    fn mathematical_notations() {
+        assert_eq!(
+            parse("2 sin(3)"),
+            Ok(binop!(
+                Mul,
+                Number(2.),
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![Number(3.)],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("2 (5 + 2)"),
+            Ok(binop!(Mul, Number(2.), binop!(Add, Number(5.), Number(2.))))
+        );
+        assert_eq!(
+            parse("3 (4 + 5) sin(6)"),
+            Ok(binop!(
+                Mul,
+                binop!(Mul, Number(3.), binop!(Add, Number(4.), Number(5.))),
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![Number(6.)],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("2 (3 + 4) (5 + 6)"),
+            Ok(binop!(
+                Mul,
+                binop!(Mul, Number(2.), binop!(Add, Number(3.), Number(4.))),
+                binop!(Add, Number(5.), Number(6.))
+            ))
+        );
+        assert_eq!(
+            parse("2 sin(3 + 4)"),
+            Ok(binop!(
+                Mul,
+                Number(2.),
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![binop!(Add, Number(3.), Number(4.))],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("2 (3 + sin(4))"),
+            Ok(binop!(
+                Mul,
+                Number(2.),
+                binop!(
+                    Add,
+                    Number(3.),
+                    Expr::FnCall {
+                        fname: "sin".into(),
+                        args: vec![Number(4.)],
+                    }
+                )
+            ))
+        );
+
+        // Failing tests
+        assert!(parse("2 (3 + 4").is_err());
+        assert!(parse("2 3 + 4)").is_err());
+        assert!(parse("2 sin 3)").is_err());
+        assert!(parse("2 (3 + sin(4)").is_err());
+        assert!(parse("2 (3 + sin 4)").is_err());
+        assert!(parse("2 (3 + 4))").is_err());
+        assert!(parse("2 (3 + (4)").is_err());
+        assert!(parse("2 (3 + 4))").is_err());
+        assert!(parse("2 (3 + 4) -").is_err());
+        assert!(parse("2 (3 + 4) - 5 %").is_err());
+        assert!(parse("2 (3 + 4) - 5 % 6)").is_err());
+        assert!(parse("2 (3 + 4) 5").is_err());
     }
 
     #[test]
@@ -447,46 +551,6 @@ mod tests {
                     }
                 )
             ))
-        );
-        assert_eq!(
-            parse("log(2, 3) + sin(4)"),
-            Ok(binop!(
-                Add,
-                Expr::FnCall {
-                    fname: "log".into(),
-                    args: vec![Number(2.), Number(3.)],
-                },
-                Expr::FnCall {
-                    fname: "sin".into(),
-                    args: vec![Number(4.)],
-                }
-            ))
-        );
-
-        // Different number notations
-        assert_eq!(
-            parse("1e3 + 2.5"),
-            Ok(binop!(Add, Number(1e3), Number(2.5)))
-        );
-        assert_eq!(
-            parse("1e-3 * 2.5"),
-            Ok(binop!(Mul, Number(1e-3), Number(2.5)))
-        );
-        assert_eq!(
-            parse("2.5e2 - 1"),
-            Ok(binop!(Sub, Number(2.5e2), Number(1.)))
-        );
-        assert_eq!(
-            parse("2.5e-2 / 1e3"),
-            Ok(binop!(Div, Number(2.5e-2), Number(1e3)))
-        );
-        assert_eq!(
-            parse("-1e3 + 2.5"),
-            Ok(binop!(Add, Number(-1e3), Number(2.5)))
-        );
-        assert_eq!(
-            parse("2.5e2 % 1e3"),
-            Ok(binop!(Rem, Number(2.5e2), Number(1e3)))
         );
 
         // Combining scientific notation and function calls
