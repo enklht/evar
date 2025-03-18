@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{
     input::{Input, Stream},
@@ -8,7 +10,7 @@ use colored::Colorize;
 use logos::Logos;
 use rustyline::{
     Completer, Config, Editor, Helper, Highlighter, Hinter, Validator,
-    completion::FilenameCompleter, highlight::MatchingBracketHighlighter, hint::HistoryHinter,
+    completion::FilenameCompleter, highlight::Highlighter, hint::HistoryHinter,
     validate::MatchingBracketValidator,
 };
 use seva::{context::Context, eval::eval, lexer::Token, parser::parser};
@@ -22,30 +24,81 @@ struct RustyLineHelper {
     #[rustyline(Hinter)]
     hinter: HistoryHinter,
     #[rustyline(Highlighter)]
-    highlighter: MatchingBracketHighlighter,
+    highlighter: SevaHighlighter,
     prompt: String,
+}
+
+struct SevaHighlighter;
+
+impl Highlighter for SevaHighlighter {
+    fn highlight<'l>(&self, line: &'l str, _pos: usize) -> std::borrow::Cow<'l, str> {
+        let tokens = Token::lexer(line).spanned();
+
+        let highlighted_line = tokens.fold(String::new(), |acc, (lex_result, span)| {
+            acc + &{
+                match lex_result {
+                    Err(_) => format!("{}", line[span].truecolor(237, 135, 150)),
+                    Ok(token) => match token {
+                        Token::Number(_) => format!("{}", line[span].truecolor(245, 169, 127)),
+                        Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
+                        Token::Operator(_) => format!("{}", line[span].truecolor(125, 196, 228)),
+                        Token::Ctrl('(') | Token::Ctrl(')') => {
+                            format!("{}", line[span].truecolor(238, 212, 159))
+                        }
+                        _ => line[span].to_string(),
+                    },
+                }
+            }
+        });
+
+        highlighted_line.into()
+    }
+    fn highlight_char(
+        &self,
+        _line: &str,
+        _pos: usize,
+        kind: rustyline::highlight::CmdKind,
+    ) -> bool {
+        use rustyline::highlight::CmdKind;
+        kind != CmdKind::MoveCursor && kind != CmdKind::ForcedRefresh
+    }
+    fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
+        format!("{}", hint.truecolor(91, 96, 120)).into()
+    }
+    fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
+        &'s self,
+        prompt: &'p str,
+        _default: bool,
+    ) -> Cow<'b, str> {
+        format!("{}", prompt.truecolor(166, 218, 149)).into()
+    }
 }
 
 fn main() {
     let context = Context::parse();
 
-    let editor_config = Config::builder().auto_add_history(true).build();
+    let editor_config = Config::builder()
+        .auto_add_history(true)
+        .completion_type(rustyline::CompletionType::List)
+        .bell_style(rustyline::config::BellStyle::None)
+        .build();
 
     let helper = RustyLineHelper {
         completer: FilenameCompleter::new(),
         validator: MatchingBracketValidator::new(),
         hinter: HistoryHinter::new(),
-        highlighter: MatchingBracketHighlighter::new(),
+        highlighter: SevaHighlighter,
         prompt: "".into(),
     };
 
     let mut editor = Editor::with_config(editor_config).unwrap();
     editor.set_helper(Some(helper));
+    editor.bind_sequence(rustyline::KeyEvent::ctrl('f'), rustyline::Cmd::CompleteHint);
 
     loop {
-        let prompt = format!("{}", "> ".green());
-        editor.helper_mut().expect("No helper").prompt = prompt.clone();
+        let prompt = "> ".to_string();
         let input = editor.readline(&prompt);
+        editor.helper_mut().expect("No helper").prompt = prompt;
 
         match input {
             Ok(input) => {
@@ -77,7 +130,6 @@ fn main() {
             }
         };
     }
-    editor.append_history("history.txt").unwrap();
 }
 
 fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
@@ -85,7 +137,7 @@ fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
         Report::build(ReportKind::Error, ("", err.span().into_range()))
             .with_label(
                 Label::new(("", err.span().into_range()))
-                    .with_message(err.to_string())
+                    .with_message(err.reason().to_string())
                     .with_color(Color::Red),
             )
             .with_labels(err.contexts().map(|(label, span)| {
