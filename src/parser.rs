@@ -337,64 +337,58 @@ mod tests {
         assert!(parse("--3").is_err());
         assert!(parse("(5 % 3)  2").is_err(),);
     }
-    //
-    // #[test]
-    // fn unary_function_calls() {
-    //     assert_eq!(
-    //         parse("sin(0)"),
-    //         Ok(Expr::UnaryFnCall {
-    //             function: UnaryFn::Sin,
-    //             arg: Box::new(Number(0.)),
-    //         })
-    //     );
-    //     assert_eq!(
-    //         parse("sin(3)"),
-    //         Ok(Expr::UnaryFnCall {
-    //             function: UnaryFn::Sin,
-    //             arg: Box::new(Number(3.)),
-    //         })
-    //     );
-    //
-    //     // Failing tests
-    //     assert!(parse("sin()").is_err());
-    //     assert!(parse("sin(-3.)").is_err());
-    //     assert!(parse("sin(3, 4)").is_err());
-    //     assert!(parse("sin(abc)").is_err());
-    // }
 
-    // #[test]
-    // fn binary_function_calls() {
-    //     assert_eq!(
-    //         parse("log(1, 10)"),
-    //         Ok(Expr::BinaryFnCall {
-    //             function: BinaryFn::Log,
-    //             arg1: Box::new(Number(1.)),
-    //             arg2: Box::new(Number(10.)),
-    //         })
-    //     );
-    //     assert_eq!(
-    //         parse("log(2.5, 10)"),
-    //         Ok(Expr::BinaryFnCall {
-    //             function: BinaryFn::Log,
-    //             arg1: Box::new(Number(2.5)),
-    //             arg2: Box::new(Number(10.)),
-    //         })
-    //     );
-    //     assert_eq!(
-    //         parse("log(2.5, 2.5)"),
-    //         Ok(Expr::BinaryFnCall {
-    //             function: BinaryFn::Log,
-    //             arg1: Box::new(Number(2.5)),
-    //             arg2: Box::new(Number(2.5)),
-    //         })
-    //     );
-    //
-    //     // Failing tests
-    //     assert!(parse("log(1)").is_err());
-    //     assert!(parse("log(1, 2, 3)").is_err());
-    //     assert!(parse("log(abc, 10)").is_err());
-    // }
-    //
+    #[test]
+    fn unary_function_calls() {
+        assert_eq!(
+            parse("sin(0)"),
+            Ok(Expr::FnCall {
+                fname: "sin".into(),
+                args: vec![Number(0.)],
+            })
+        );
+
+        assert_eq!(
+            parse("sin(3)"),
+            Ok(Expr::FnCall {
+                fname: "sin".into(),
+                args: vec![Number(3.)],
+            })
+        );
+
+        // Failing tests
+        assert!(parse("sin(-3.)").is_err());
+        assert!(parse("sin(abc)").is_err());
+    }
+
+    #[test]
+    fn binary_function_calls() {
+        assert_eq!(
+            parse("log(1, 10)"),
+            Ok(Expr::FnCall {
+                fname: "log".into(),
+                args: vec![Number(1.), Number(10.)],
+            })
+        );
+        assert_eq!(
+            parse("log(2.5, 10)"),
+            Ok(Expr::FnCall {
+                fname: "log".into(),
+                args: vec![Number(2.5), Number(10.)],
+            })
+        );
+        assert_eq!(
+            parse("log(2.5, 2.5)"),
+            Ok(Expr::FnCall {
+                fname: "log".into(),
+                args: vec![Number(2.5), Number(2.5)],
+            })
+        );
+
+        // Failing tests
+        assert!(parse("log(abc, 10)").is_err());
+    }
+
     #[test]
     fn mixed_operations_and_number_notations() {
         // Mixed operations
@@ -420,6 +414,7 @@ mod tests {
                 }
             ))
         );
+
         assert_eq!(
             parse("2 * sin(3 + 4) - log(5, 6)"),
             Ok(binop!(
