@@ -80,6 +80,7 @@ fn main() {
     let editor_config = Config::builder()
         .auto_add_history(true)
         .completion_type(rustyline::CompletionType::List)
+        .bell_style(rustyline::config::BellStyle::None)
         .build();
 
     let helper = RustyLineHelper {
