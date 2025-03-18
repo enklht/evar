@@ -12,7 +12,7 @@ where
     recursive(|expr| {
         let whitespace = just(Token::Space).or_not();
 
-        let number = just(Token::Operator("-"))
+        let number = just(Token::Minus)
             .or_not()
             .then(select! {
                 Token::Number(n) => n
@@ -29,9 +29,9 @@ where
         .labelled("ident")
         .then(
             expr.clone()
-                .separated_by(just(Token::Ctrl(',')))
+                .separated_by(just(Token::Comma))
                 .collect()
-                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
+                .delimited_by(just(Token::LParen), just(Token::RParen)),
         )
         .map(|(fname, args)| Expr::FnCall {
             fname: fname.into(),
@@ -42,11 +42,11 @@ where
             number.clone(),
             fn_call,
             expr.clone()
-                .delimited_by(just(Token::Ctrl('(')), just(Token::Ctrl(')'))),
+                .delimited_by(just(Token::LParen), just(Token::RParen)),
         ));
 
         let prefixed = select! {
-            Token::Operator("-") => UnaryOp::Neg
+            Token::Minus => UnaryOp::Neg
         }
         .labelled("prefix operator")
         .then(atomic.clone().and_is(number.clone().not()))
@@ -60,7 +60,7 @@ where
             .clone()
             .then(
                 select! {
-                    Token::Operator("!") => UnaryOp::Fac
+                    Token::Exclamation => UnaryOp::Fac
                 }
                 .labelled("postfix operator"),
             )
@@ -76,7 +76,7 @@ where
             .clone()
             .then(
                 select! {
-                    Token::Operator("^") => BinaryOp::Pow
+                    Token::Caret => BinaryOp::Pow
                 }
                 .labelled("infix operator"),
             )
@@ -99,9 +99,9 @@ where
 
         let product = powers.clone().foldl(
             select! {
-                Token::Operator("*") => BinaryOp::Mul,
-                Token::Operator("/") => BinaryOp::Div,
-                Token::Operator("%") => BinaryOp::Rem
+                Token::Asterisk => BinaryOp::Mul,
+                Token::Slash => BinaryOp::Div,
+                Token::Percent => BinaryOp::Rem
             }
             .labelled("infix operator")
             .then(powers)
@@ -115,8 +115,8 @@ where
 
         let sum = product.clone().foldl(
             select! {
-                Token::Operator("+") => BinaryOp::Add,
-                Token::Operator("-") => BinaryOp::Sub
+                Token::Plus => BinaryOp::Add,
+                Token::Minus => BinaryOp::Sub
             }
             .labelled("infix operator")
             .then(product)

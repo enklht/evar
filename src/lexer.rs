@@ -12,13 +12,27 @@ pub enum Token<'a> {
     #[regex(r"(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
 
-    #[regex(r"[+\-\*/%^!]")]
-    Operator(&'a str),
+    #[token("+")]
+    Plus,
+    #[token("-")]
+    Minus,
+    #[token("*")]
+    Asterisk,
+    #[token("/")]
+    Slash,
+    #[token("%")]
+    Percent,
+    #[token("^")]
+    Caret,
+    #[token("!")]
+    Exclamation,
 
-    #[token("(", |_| '(')]
-    #[token(")", |_| ')')]
-    #[token(",", |_| ',')]
-    Ctrl(char),
+    #[token("(")]
+    LParen,
+    #[token(")")]
+    RParen,
+    #[token(",")]
+    Comma,
 
     #[regex(r"[[:alpha:]][[:alnum:]]*")]
     Ident(&'a str),
@@ -28,11 +42,19 @@ impl fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Error => write!(f, "unknown symbol"),
-            Self::Number(s) => write!(f, "{}", s),
-            Self::Operator(s) => write!(f, "{}", s),
-            Self::Ctrl(s) => write!(f, "{}", s),
-            Self::Ident(s) => write!(f, "{}", s),
             Self::Space => write!(f, " "),
+            Self::Number(s) => write!(f, "{}", s),
+            Self::Plus => write!(f, "+"),
+            Self::Minus => write!(f, "-"),
+            Self::Asterisk => write!(f, "*"),
+            Self::Slash => write!(f, "/"),
+            Self::Percent => write!(f, "%"),
+            Self::Caret => write!(f, "^"),
+            Self::Exclamation => write!(f, "!"),
+            Self::LParen => write!(f, "("),
+            Self::RParen => write!(f, ")"),
+            Self::Comma => write!(f, ","),
+            Self::Ident(s) => write!(f, "{}", s),
         }
     }
 }
