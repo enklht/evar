@@ -27,18 +27,57 @@ macro_rules! unary_fn {
     };
 }
 
+macro_rules! binary_fn {
+    ($fname:ident) => {
+        (
+            stringify!($fname).into(),
+            Function::External {
+                arity: 2,
+                body: |x| x.first().unwrap().$fname(*x.get(1).unwrap()),
+            },
+        )
+    };
+    ($fname:ident, $body:expr) => {
+        (
+            stringify!($fname).into(),
+            Function::External {
+                arity: 2,
+                body: $body,
+            },
+        )
+    };
+}
+
 impl Context {
     pub fn new(args: Args) -> Context {
-        let functions = [
-            unary_fn!(sin),
-            unary_fn!(cos),
-            unary_fn!(tan),
-            unary_fn!(sec, |x| x.first().unwrap().sin().recip()),
-            unary_fn!(csc, |x| x.first().unwrap().cos().recip()),
-            unary_fn!(cot, |x| x.first().unwrap().tan().recip()),
-            unary_fn!(asin),
-            unary_fn!(acos),
-            unary_fn!(atan),
+        use crate::args::AngleUnit;
+
+        let mut functions = HashMap::from(match args.angle_unit {
+            AngleUnit::Radian => [
+                unary_fn!(sin),
+                unary_fn!(cos),
+                unary_fn!(tan),
+                unary_fn!(sec, |x| x.first().unwrap().sin().recip()),
+                unary_fn!(csc, |x| x.first().unwrap().cos().recip()),
+                unary_fn!(cot, |x| x.first().unwrap().tan().recip()),
+                unary_fn!(asin),
+                unary_fn!(acos),
+                unary_fn!(atan),
+            ],
+            AngleUnit::Degree => [
+                unary_fn!(sin, |x| x.first().unwrap().to_radians().sin()),
+                unary_fn!(cos, |x| x.first().unwrap().to_radians().cos()),
+                unary_fn!(tan, |x| x.first().unwrap().to_radians().tan()),
+                unary_fn!(sec, |x| x.first().unwrap().to_radians().sin().recip()),
+                unary_fn!(csc, |x| x.first().unwrap().to_radians().cos().recip()),
+                unary_fn!(cot, |x| x.first().unwrap().to_radians().tan().recip()),
+                unary_fn!(asin, |x| x.first().unwrap().asin().to_degrees()),
+                unary_fn!(acos, |x| x.first().unwrap().acos().to_degrees()),
+                unary_fn!(atan, |x| x.first().unwrap().atan().to_degrees()),
+            ],
+        });
+
+        for (fname, function) in [
             unary_fn!(sinh),
             unary_fn!(cosh),
             unary_fn!(tanh),
@@ -54,8 +93,15 @@ impl Context {
             unary_fn!(log10),
             unary_fn!(rad, |x| x.first().unwrap().to_radians()),
             unary_fn!(deg, |x| x.first().unwrap().to_degrees()),
-        ]
-        .into();
+            binary_fn!(log),
+            binary_fn!(nroot, |x| x
+                .first()
+                .unwrap()
+                .powf(x.get(1).unwrap().recip())),
+        ] {
+            functions.insert(fname, function);
+        }
+
         Context { functions }
     }
 
@@ -88,7 +134,7 @@ impl Function {
                     })
                 }
             }
-            Function::Internal { arity, body } => {
+            Function::Internal { arity: _, body: _ } => {
                 todo!()
             }
         }
