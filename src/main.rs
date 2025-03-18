@@ -1,7 +1,7 @@
 use ariadne::{Color, Label, Report, ReportKind, Source};
 use clap::Parser as ClapParser;
 use dialoguer::{BasicHistory, theme::ColorfulTheme};
-use seva::{context::Context, eval::eval, parser::expr};
+use seva::{context::Context, eval::eval, parser::parse};
 
 fn main() {
     let context = Context::parse();
@@ -18,8 +18,8 @@ fn main() {
                 break;
             }
 
-            match expr(&input) {
-                Ok(out) => println!("{}", out),
+            match parse(&input) {
+                Ok(out) => println!("{:?}", eval(out, &context)),
                 Err(err) => println!("{}", err),
             };
 

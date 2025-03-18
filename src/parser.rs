@@ -93,7 +93,7 @@ fn postfixed(input: &str) -> IResult<&str, Expr> {
             op: UnaryOp::Fac,
             arg: Box::new(e),
         }),
-        atom,
+        prefixed,
     ))
     .parse(input)
 }
@@ -151,14 +151,14 @@ fn product(input: &str) -> IResult<&str, Expr> {
 }
 
 fn sum(input: &str) -> IResult<&str, Expr> {
-    let (input, first) = powers(input)?;
+    let (input, first) = product(input)?;
     let (input, tail) = many0((
         one_of("+-").map(|c| match c {
             '+' => BinaryOp::Add,
             '-' => BinaryOp::Sub,
             _ => unreachable!(),
         }),
-        powers,
+        product,
     ))
     .parse(input)?;
 
@@ -174,11 +174,11 @@ fn sum(input: &str) -> IResult<&str, Expr> {
 }
 
 fn expr(input: &str) -> IResult<&str, Expr> {
-    all_consuming(sum).parse(input)
+    sum.parse(input)
 }
 
 pub fn parse(input: &str) -> Result<Expr, String> {
-    match all_consuming(sum).parse(input) {
+    match term.parse(input) {
         Ok((_, expr)) => Ok(expr),
         Err(e) => Err(format!("{}", e)),
     }
@@ -206,10 +206,6 @@ mod tests {
                 rhs: $rhs.into(),
             }
         };
-    }
-
-    fn parse(input: &str) -> Result<Expr, String> {
-        parse(input).map_err(|e| format!("{}", e))
     }
 
     #[test]
