@@ -123,6 +123,24 @@ impl Context {
     pub fn get_variable(&self, name: &str) -> Option<&Variable> {
         self.variables.get(name)
     }
+
+    pub fn set_variable(&mut self, name: &str, n: f64) -> Option<()> {
+        use Variable::*;
+        use std::collections::hash_map::Entry::*;
+
+        match self.variables.entry(name.to_string()) {
+            Occupied(mut e) => match e.get() {
+                External(_) => return None,
+                Internal(_) => {
+                    e.insert(Variable::Internal(n));
+                }
+            },
+            Vacant(e) => {
+                e.insert(Variable::Internal(n));
+            }
+        }
+        Some(())
+    }
 }
 
 pub enum Variable {

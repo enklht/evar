@@ -12,7 +12,7 @@ fn main() -> Result<(), SevaError> {
     let args = Args::parse();
     let debug = args.debug;
 
-    let context = Context::new(&args);
+    let mut context = Context::new(&args);
 
     let mut editor = SevaEditor::new(&args);
 
@@ -42,7 +42,7 @@ fn main() -> Result<(), SevaError> {
                 if debug {
                     println!("{}", expr)
                 };
-                match eval(expr, &context) {
+                match eval(expr, &mut context) {
                     Ok(out) => println!("{}", out),
                     Err(err) => println!("{}", err),
                 }

@@ -10,6 +10,11 @@ pub enum Token<'a> {
     #[regex(r"(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Number(f64),
 
+    #[token("let")]
+    Let,
+    #[token("=")]
+    Equal,
+
     #[token("+")]
     Plus,
     #[token("-")]
@@ -53,6 +58,8 @@ impl std::fmt::Display for Token<'_> {
             Self::RParen => write!(f, ")"),
             Self::Comma => write!(f, ","),
             Self::Ident(s) => write!(f, "{}", s),
+            Self::Let => write!(f, "let"),
+            Self::Equal => write!(f, "="),
         }
     }
 }
