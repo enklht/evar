@@ -124,7 +124,7 @@ impl Context {
         self.variables.get(name)
     }
 
-    pub fn set_variable(&mut self, name: &str, n: f64) -> Option<()> {
+    pub fn set_variable(&mut self, name: &str, n: f64) -> Option<f64> {
         use Variable::*;
         use std::collections::hash_map::Entry::*;
 
@@ -139,7 +139,7 @@ impl Context {
                 e.insert(Variable::Internal(n));
             }
         }
-        Some(())
+        Some(n)
     }
 }
 
