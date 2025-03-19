@@ -73,7 +73,14 @@ where
             .boxed();
 
         let prefixed = choice((just(Token::Minus).to(UnaryOp::Neg),))
-            .then(power.clone().and_is(number.clone().not()))
+            .then(
+                power.clone().and_is(
+                    select! {
+                        Token::Number(_)
+                    }
+                    .not(),
+                ),
+            )
             .map(|(op, rhs)| Expr::UnaryOp {
                 op,
                 arg: Box::new(rhs),
