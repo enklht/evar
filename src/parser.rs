@@ -69,9 +69,9 @@ where
 
         let power = term
             .clone()
-            .then(just(Token::Caret).to(BinaryOp::Pow))
+            .then(just(Token::Caret).to(InfixOp::Pow))
             .repeated()
-            .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
+            .foldr(term, |(lhs, op), rhs| Expr::InfixOp {
                 op,
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
@@ -82,8 +82,8 @@ where
             .clone()
             .foldl(
                 power.and_is(just(Token::Minus).not()).repeated(),
-                |lhs, rhs| Expr::BinaryOp {
-                    op: BinaryOp::Mul,
+                |lhs, rhs| Expr::InfixOp {
+                    op: InfixOp::Mul,
                     lhs: Box::new(lhs),
                     rhs: Box::new(rhs),
                 },
@@ -94,13 +94,13 @@ where
             .clone()
             .foldl(
                 choice((
-                    just(Token::Asterisk).to(BinaryOp::Mul),
-                    just(Token::Slash).to(BinaryOp::Div),
-                    just(Token::Percent).to(BinaryOp::Rem),
+                    just(Token::Asterisk).to(InfixOp::Mul),
+                    just(Token::Slash).to(InfixOp::Div),
+                    just(Token::Percent).to(InfixOp::Rem),
                 ))
                 .then(powers)
                 .repeated(),
-                |lhs, (op, rhs)| Expr::BinaryOp {
+                |lhs, (op, rhs)| Expr::InfixOp {
                     op,
                     lhs: Box::new(lhs),
                     rhs: Box::new(rhs),
@@ -112,12 +112,12 @@ where
             .clone()
             .foldl(
                 choice((
-                    just(Token::Plus).to(BinaryOp::Add),
-                    just(Token::Minus).to(BinaryOp::Sub),
+                    just(Token::Plus).to(InfixOp::Add),
+                    just(Token::Minus).to(InfixOp::Sub),
                 ))
                 .then(product)
                 .repeated(),
-                |lhs, (op, rhs)| Expr::BinaryOp {
+                |lhs, (op, rhs)| Expr::InfixOp {
                     op,
                     lhs: Box::new(lhs),
                     rhs: Box::new(rhs),
@@ -154,8 +154,8 @@ mod tests {
 
     macro_rules! binop {
         ($op_name:ident, $lhs:expr, $rhs:expr) => {
-            Expr::BinaryOp {
-                op: super::BinaryOp::$op_name,
+            Expr::InfixOp {
+                op: super::InfixOp::$op_name,
                 lhs: $lhs.into(),
                 rhs: $rhs.into(),
             }

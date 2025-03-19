@@ -13,8 +13,8 @@ pub enum Expr {
         op: PostfixOp,
         arg: Box<Expr>,
     },
-    BinaryOp {
-        op: BinaryOp,
+    InfixOp {
+        op: InfixOp,
         lhs: Box<Expr>,
         rhs: Box<Expr>,
     },
@@ -34,7 +34,7 @@ impl std::fmt::Display for Expr {
             }
             Expr::PrefixOp { op, arg } => write!(f, "({}{})", op, arg),
             Expr::PostfixOp { op, arg } => write!(f, "({}{})", arg, op),
-            Expr::BinaryOp { op, lhs, rhs } => write!(f, "({} {} {})", lhs, op, rhs),
+            Expr::InfixOp { op, lhs, rhs } => write!(f, "({} {} {})", lhs, op, rhs),
         }
     }
 }
@@ -68,7 +68,7 @@ impl std::fmt::Display for PostfixOp {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum BinaryOp {
+pub enum InfixOp {
     Add,
     Sub,
     Mul,
@@ -77,15 +77,15 @@ pub enum BinaryOp {
     Pow,
 }
 
-impl std::fmt::Display for BinaryOp {
+impl std::fmt::Display for InfixOp {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let op_str = match self {
-            BinaryOp::Add => "+",
-            BinaryOp::Sub => "-",
-            BinaryOp::Mul => "*",
-            BinaryOp::Div => "/",
-            BinaryOp::Rem => "%",
-            BinaryOp::Pow => "^",
+            InfixOp::Add => "+",
+            InfixOp::Sub => "-",
+            InfixOp::Mul => "*",
+            InfixOp::Div => "/",
+            InfixOp::Rem => "%",
+            InfixOp::Pow => "^",
         };
         write!(f, "{}", op_str)
     }
