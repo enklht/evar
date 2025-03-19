@@ -1,11 +1,31 @@
 #[derive(Debug, PartialEq)]
+pub enum Stmt {
+    DefVar {
+        name: String,
+        expr: Expr,
+    },
+    DefFun {
+        name: String,
+        args: Vec<String>,
+        body: Expr,
+    },
+    Expr(Expr),
+}
+
+impl std::fmt::Display for Stmt {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Stmt::DefVar { name, expr } => write!(f, "let {} := {}", name, expr),
+            Stmt::DefFun { name, args, body } => write!(f, "let {}({:?}) := {}", name, args, body),
+            Stmt::Expr(expr) => write!(f, "{}", expr),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Number(f64),
     Variable(String),
-    DefVar {
-        name: String,
-        expr: Box<Expr>,
-    },
     FnCall {
         name: String,
         args: Vec<Expr>,
@@ -30,7 +50,6 @@ impl std::fmt::Display for Expr {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
             Expr::Variable(n) => write!(f, "{}", n),
-            Expr::DefVar { name, expr } => write!(f, "let {} := {}", name, expr),
             Expr::FnCall { name: fname, args } => {
                 let args_str = args
                     .iter()
