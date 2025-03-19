@@ -1,6 +1,9 @@
+use std::sync::Arc;
+
 use crate::lexer::Token;
 use crate::types::*;
 
+use chumsky::cache::Cached;
 use chumsky::input::ValueInput;
 use chumsky::prelude::*;
 
@@ -9,21 +12,21 @@ pub fn parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
-    recursive(|expr| {
-        let whitespace = just(Token::Space).or_not();
+    let whitespace = just(Token::Space).or_not();
 
-        let number = just(Token::Minus)
-            .or_not()
-            .then(select! {
-                Token::Number(n) => n
-            })
-            .map(|(sign, n)| match sign {
-                Some(_) => Expr::Number(-n),
-                None => Expr::Number(n),
-            })
-            .labelled("number")
-            .boxed();
+    let number = just(Token::Minus)
+        .or_not()
+        .then(select! {
+            Token::Number(n) => n
+        })
+        .map(|(sign, n)| match sign {
+            Some(_) => Expr::Number(-n),
+            None => Expr::Number(n),
+        })
+        .labelled("number")
+        .boxed();
 
+    let expr = recursive(|expr| {
         let fn_call = select! {
             Token::Ident(ident) => ident
         }
@@ -71,7 +74,10 @@ where
                 }))
             .boxed();
 
-        let term = prefixed.padded_by(whitespace.clone()).boxed();
+        let term = prefixed
+            .padded_by(whitespace.clone())
+            .labelled("term")
+            .boxed();
 
         let power = term
             .clone()
@@ -132,7 +138,9 @@ where
             .boxed();
 
         sum.labelled("expression").as_context()
-    })
+    });
+
+    expr
 }
 
 #[cfg(test)]
