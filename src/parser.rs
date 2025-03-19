@@ -21,112 +21,112 @@ where
                 Some(_) => Expr::Number(-n),
                 None => Expr::Number(n),
             })
-            .labelled("number");
+            .labelled("number")
+            .boxed();
 
         let fn_call = select! {
             Token::Ident(ident) => ident
         }
         .labelled("ident")
-        .then(
-            expr.clone()
-                .separated_by(just(Token::Comma))
-                .collect()
-                .delimited_by(just(Token::LParen), just(Token::RParen)),
-        )
+        .then_ignore(just(Token::LParen))
+        .then(expr.clone().separated_by(just(Token::Comma)).collect())
+        .then_ignore(just(Token::RParen))
         .map(|(fname, args)| Expr::FnCall {
             fname: fname.into(),
             args,
-        });
+        })
+        .boxed();
 
         let atomic = choice((
             number.clone(),
             fn_call,
             expr.clone()
                 .delimited_by(just(Token::LParen), just(Token::RParen)),
-        ));
+        ))
+        .boxed();
 
-        let prefixed = select! {
-            Token::Minus => UnaryOp::Neg
-        }
-        .labelled("prefix operator")
-        .then(atomic.clone().and_is(number.clone().not()))
-        .map(|(op, rhs)| Expr::UnaryOp {
-            op,
-            arg: Box::new(rhs),
-        })
-        .or(atomic.clone());
-
-        let postfixed = prefixed
+        let postfixed = atomic
             .clone()
-            .then(
-                select! {
-                    Token::Exclamation => UnaryOp::Fac
-                }
-                .labelled("postfix operator"),
-            )
+            .then(choice((just(Token::Exclamation).to(UnaryOp::Fac),)))
             .map(|(lhs, op)| Expr::UnaryOp {
                 op,
                 arg: Box::new(lhs),
             })
-            .or(prefixed);
+            .or(atomic.clone())
+            .boxed();
 
-        let term = postfixed.padded_by(whitespace.clone()).boxed();
+        let term = postfixed
+            .padded_by(whitespace.clone())
+            .labelled("term")
+            .as_context()
+            .boxed();
 
         let power = term
             .clone()
-            .then(
-                select! {
-                    Token::Caret => BinaryOp::Pow
-                }
-                .labelled("infix operator"),
-            )
+            .then(just(Token::Caret).to(BinaryOp::Pow))
             .repeated()
             .foldr(term, |(lhs, op), rhs| Expr::BinaryOp {
                 op,
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
-            });
+            })
+            .boxed();
 
-        let powers = power
-            .clone()
-            .foldl(power.and_is(number.not()).repeated(), |lhs, rhs| {
-                Expr::BinaryOp {
+        let prefixed = choice((just(Token::Minus).to(UnaryOp::Neg),))
+            .then(power.clone().and_is(number.clone().not()))
+            .map(|(op, rhs)| Expr::UnaryOp {
+                op,
+                arg: Box::new(rhs),
+            })
+            .or(power.clone())
+            .padded_by(whitespace)
+            .boxed();
+
+        let powers = prefixed
+            .foldl(
+                power.and_is(just(Token::Minus).not()).repeated(),
+                |lhs, rhs| Expr::BinaryOp {
                     op: BinaryOp::Mul,
                     lhs: Box::new(lhs),
                     rhs: Box::new(rhs),
-                }
-            });
+                },
+            )
+            .boxed();
 
-        let product = powers.clone().foldl(
-            select! {
-                Token::Asterisk => BinaryOp::Mul,
-                Token::Slash => BinaryOp::Div,
-                Token::Percent => BinaryOp::Rem
-            }
-            .labelled("infix operator")
-            .then(powers)
-            .repeated(),
-            |lhs, (op, rhs)| Expr::BinaryOp {
-                op,
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
-            },
-        );
+        let product = powers
+            .clone()
+            .foldl(
+                choice((
+                    just(Token::Asterisk).to(BinaryOp::Mul),
+                    just(Token::Slash).to(BinaryOp::Div),
+                    just(Token::Percent).to(BinaryOp::Rem),
+                ))
+                .then(powers)
+                .repeated(),
+                |lhs, (op, rhs)| Expr::BinaryOp {
+                    op,
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                },
+            )
+            .boxed();
 
-        let sum = product.clone().foldl(
-            select! {
-                Token::Plus => BinaryOp::Add,
-                Token::Minus => BinaryOp::Sub
-            }
-            .labelled("infix operator")
-            .then(product)
-            .repeated(),
-            |lhs, (op, rhs)| Expr::BinaryOp {
-                op,
-                lhs: Box::new(lhs),
-                rhs: Box::new(rhs),
-            },
-        );
+        let sum = product
+            .clone()
+            .foldl(
+                choice((
+                    just(Token::Plus).to(BinaryOp::Add),
+                    just(Token::Minus).to(BinaryOp::Sub),
+                ))
+                .then(product)
+                .repeated(),
+                |lhs, (op, rhs)| Expr::BinaryOp {
+                    op,
+                    lhs: Box::new(lhs),
+                    rhs: Box::new(rhs),
+                },
+            )
+            .boxed();
 
         sum.labelled("expression").as_context()
     })

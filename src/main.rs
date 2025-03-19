@@ -99,7 +99,7 @@ fn main() {
         prompt: "".into(),
     };
 
-    let mut editor = Editor::with_config(editor_config).unwrap();
+    let mut editor = Editor::with_config(editor_config).expect("failed to create editor");
     editor.set_helper(Some(helper));
     editor.bind_sequence(rustyline::KeyEvent::ctrl('f'), rustyline::Cmd::CompleteHint);
 
@@ -120,16 +120,14 @@ fn main() {
                 });
 
                 let token_stream =
-                    Stream::from_iter(token_iter).map((0..input.len()).into(), |x| x);
+                    Stream::from_iter(token_iter).map((input.len()..input.len()).into(), |x| x);
 
                 match parser().parse(token_stream).into_result() {
                     Ok(expr) => match eval(expr, &context) {
                         Ok(out) => println!("{}", out),
                         Err(err) => println!("{}", err),
                     },
-                    Err(errs) => {
-                        report_error(errs, &input);
-                    }
+                    Err(errs) => report_error(errs, &input),
                 }
             }
             Err(err) => {
@@ -155,6 +153,6 @@ fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
             }))
             .finish()
             .eprint(("", Source::from(input)))
-            .unwrap();
+            .expect("failed to report error");
     }
 }
