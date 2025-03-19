@@ -120,7 +120,7 @@ fn main() {
                 });
 
                 let token_stream =
-                    Stream::from_iter(token_iter).map((0..input.len()).into(), |x| x);
+                    Stream::from_iter(token_iter).map((input.len()..input.len()).into(), |x| x);
 
                 match parser().parse(token_stream).into_result() {
                     Ok(expr) => match eval(expr, &context) {
