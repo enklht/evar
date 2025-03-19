@@ -8,7 +8,33 @@ pub fn parser<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
-    variable_definition().or(expression().map(Stmt::Expr))
+    function_definition()
+        .or(variable_definition())
+        .or(expression().map(Stmt::Expr))
+}
+
+pub fn function_definition<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>>>>
+where
+    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
+{
+    let ident = select! {
+        Token::Ident(ident) => ident.to_string()
+    }
+    .padded_by(just(Token::Space).or_not())
+    .boxed()
+    .labelled("ident");
+
+    just(Token::Let)
+        .ignore_then(just(Token::Space))
+        .ignore_then(ident.clone())
+        .then_ignore(just(Token::LParen))
+        .then(ident.separated_by(just(Token::Comma)).collect())
+        .then_ignore(just(Token::RParen))
+        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
+        .then(expression())
+        .map(|((name, args), body)| Stmt::DefFun { name, args, body })
+        .labelled("function definition")
+        .as_context()
 }
 
 pub fn variable_definition<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>>>>
@@ -23,6 +49,8 @@ where
         .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
         .then(expression())
         .map(|(name, expr)| Stmt::DefVar { name, expr })
+        .labelled("variable definition")
+        .as_context()
 }
 
 pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
