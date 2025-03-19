@@ -4,8 +4,29 @@ use crate::types::*;
 use chumsky::input::ValueInput;
 use chumsky::prelude::*;
 
-#[allow(clippy::let_and_return)]
 pub fn parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
+where
+    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
+{
+    assignment_parser().or(expr_parser())
+}
+
+pub fn assignment_parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
+where
+    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
+{
+    just(Token::Let)
+        .ignore_then(just(Token::Space))
+        .ignore_then(select! {
+            Token::Ident(ident) => ident.to_string()
+        })
+        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
+        .then(expr_parser().map(Box::new))
+        .map(|(name, expr)| Expr::Assignment { name, expr })
+}
+
+#[allow(clippy::let_and_return)]
+pub fn expr_parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
@@ -25,16 +46,13 @@ where
 
     let expr = recursive(|expr| {
         let fn_call = select! {
-            Token::Ident(ident) => ident
+            Token::Ident(ident) => ident.to_string()
         }
         .labelled("ident")
         .then_ignore(just(Token::LParen))
         .then(expr.clone().separated_by(just(Token::Comma)).collect())
         .then_ignore(just(Token::RParen))
-        .map(|(fname, args)| Expr::FnCall {
-            fname: fname.into(),
-            args,
-        })
+        .map(|(name, args)| Expr::FnCall { name, args })
         .boxed();
 
         let variable = select! {
@@ -388,7 +406,7 @@ mod tests {
         assert_eq!(
             parse("sin(0)"),
             Ok(Expr::FnCall {
-                fname: "sin".into(),
+                name: "sin".into(),
                 args: vec![Number(0.)],
             })
         );
@@ -396,7 +414,7 @@ mod tests {
         assert_eq!(
             parse("sin(3)"),
             Ok(Expr::FnCall {
-                fname: "sin".into(),
+                name: "sin".into(),
                 args: vec![Number(3.)],
             })
         );
@@ -409,21 +427,21 @@ mod tests {
         assert_eq!(
             parse("log(1, 10)"),
             Ok(Expr::FnCall {
-                fname: "log".into(),
+                name: "log".into(),
                 args: vec![Number(1.), Number(10.)],
             })
         );
         assert_eq!(
             parse("log(2.5, 10)"),
             Ok(Expr::FnCall {
-                fname: "log".into(),
+                name: "log".into(),
                 args: vec![Number(2.5), Number(10.)],
             })
         );
         assert_eq!(
             parse("log(2.5, 2.5)"),
             Ok(Expr::FnCall {
-                fname: "log".into(),
+                name: "log".into(),
                 args: vec![Number(2.5), Number(2.5)],
             })
         );
@@ -451,7 +469,7 @@ mod tests {
                 Mul,
                 Number(2.),
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![Number(3.)],
                 }
             ))
@@ -466,7 +484,7 @@ mod tests {
                 Mul,
                 binop!(Mul, Number(3.), binop!(Add, Number(4.), Number(5.))),
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![Number(6.)],
                 }
             ))
@@ -485,7 +503,7 @@ mod tests {
                 Mul,
                 Number(2.),
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![binop!(Add, Number(3.), Number(4.))],
                 }
             ))
@@ -499,7 +517,7 @@ mod tests {
                     Add,
                     Number(3.),
                     Expr::FnCall {
-                        fname: "sin".into(),
+                        name: "sin".into(),
                         args: vec![Number(4.)],
                     }
                 )
@@ -536,7 +554,7 @@ mod tests {
             Ok(binop!(
                 Mul,
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![binop!(Add, Number(2.), Number(3.))],
                 },
                 Number(4.)
@@ -548,7 +566,7 @@ mod tests {
                 Mul,
                 Number(2.),
                 Expr::FnCall {
-                    fname: "log".into(),
+                    name: "log".into(),
                     args: vec![binop!(Add, Number(3.), Number(4.)), Number(10.)],
                 }
             ))
@@ -562,12 +580,12 @@ mod tests {
                     Mul,
                     Number(2.),
                     Expr::FnCall {
-                        fname: "sin".into(),
+                        name: "sin".into(),
                         args: vec![binop!(Add, Number(3.), Number(4.))],
                     }
                 ),
                 Expr::FnCall {
-                    fname: "log".into(),
+                    name: "log".into(),
                     args: vec![Number(5.), Number(6.)],
                 }
             ))
@@ -581,7 +599,7 @@ mod tests {
                     Add,
                     Number(3.),
                     Expr::FnCall {
-                        fname: "sin".into(),
+                        name: "sin".into(),
                         args: vec![Number(4.)],
                     }
                 )
@@ -594,7 +612,7 @@ mod tests {
             Ok(binop!(
                 Add,
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![Number(1e3)],
                 },
                 Number(2.5)
@@ -605,7 +623,7 @@ mod tests {
             Ok(binop!(
                 Mul,
                 Expr::FnCall {
-                    fname: "log".into(),
+                    name: "log".into(),
                     args: vec![Number(1e-3), Number(2.5)],
                 },
                 Number(10.)
@@ -619,12 +637,12 @@ mod tests {
                     Mul,
                     Number(2.),
                     Expr::FnCall {
-                        fname: "sin".into(),
+                        name: "sin".into(),
                         args: vec![Number(2.5e2)],
                     }
                 ),
                 Expr::FnCall {
-                    fname: "log".into(),
+                    name: "log".into(),
                     args: vec![Number(1.), Number(1e3)],
                 }
             ))
@@ -635,7 +653,7 @@ mod tests {
                 Add,
                 binop!(Mul, Number(2.), Number(3.)),
                 Expr::FnCall {
-                    fname: "sin".into(),
+                    name: "sin".into(),
                     args: vec![Number(4.)],
                 }
             ))
@@ -647,7 +665,7 @@ mod tests {
                 binop!(
                     Mul,
                     Expr::FnCall {
-                        fname: "sin".into(),
+                        name: "sin".into(),
                         args: vec![Number(4.)],
                     },
                     Number(2.)

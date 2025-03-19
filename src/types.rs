@@ -2,8 +2,12 @@
 pub enum Expr {
     Number(f64),
     Variable(String),
+    Assignment {
+        name: String,
+        expr: Box<Expr>,
+    },
     FnCall {
-        fname: String,
+        name: String,
         args: Vec<Expr>,
     },
     PrefixOp {
@@ -26,7 +30,8 @@ impl std::fmt::Display for Expr {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
             Expr::Variable(n) => write!(f, "{}", n),
-            Expr::FnCall { fname, args } => {
+            Expr::Assignment { name, expr } => write!(f, "let {} := {}", name, expr),
+            Expr::FnCall { name: fname, args } => {
                 let args_str = args
                     .iter()
                     .map(|x| x.to_string())
