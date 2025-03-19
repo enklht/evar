@@ -1,14 +1,17 @@
 [package]
-name = "seva"
-version = "0.1.0"
-edition = "2024"
-description = "Simple math calculator inspired by eva"
+  name = "seva"
+  version = "0.1.0"
+  edition = "2024"
+  description = "Simple math calculator inspired by eva"
 
 [dependencies]
-ariadne = "0.5.1"
-chumsky = { version = "1.0.0-alpha.8", default-features = false, features = ["std"] }
-clap = { version = "4.5.32", features = ["derive"] }
-colored = "3.0.0"
-logos = "0.15.0"
-rustyline = { version = "15.0.0", features = ["derive"] }
-thiserror = "2.0.12"
+  ariadne = "0.5.1"
+  chumsky = { version = "1.0.0-alpha.8", default-features = false, features = [
+    "std",
+  ] }
+  clap = { version = "4.5.32", features = ["derive"] }
+  colored = "3.0.0"
+  derive_more = { version = "2.0.1", features = ["display"] }
+  logos = "0.15.0"
+  rustyline = { version = "15.0.0", features = ["derive"] }
+  thiserror = "2.0.12"
