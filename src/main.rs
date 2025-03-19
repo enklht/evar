@@ -4,10 +4,8 @@ use chumsky::{
 };
 use clap::Parser as ClapParser;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use logos::Logos;
 use seva::{
-    args::Args, context::Context, errors::SevaError, eval::eval, lexer::Token, parser::parser,
-    readline::SevaEditor, report_error,
+    SevaError, args::Args, context::Context, eval, lex, parser, readline::SevaEditor, report_error,
 };
 
 fn main() -> Result<(), SevaError> {
@@ -32,13 +30,12 @@ fn main() -> Result<(), SevaError> {
             break;
         };
 
-        let token_iter = Token::lexer(&input).spanned().map(|(tok, span)| match tok {
-            Ok(tok) => (tok, span.into()),
-            Err(()) => (Token::Error, span.into()),
-        });
+        let token_iter = lex(&input);
 
-        let token_stream =
-            Stream::from_iter(token_iter).map((input.len()..input.len()).into(), |x| x);
+        let token_stream = Stream::from_iter(token_iter)
+            .map((input.len()..input.len()).into(), |(token, span)| {
+                (token, span.into())
+            });
 
         match parser().parse(token_stream).into_result() {
             Ok(expr) => {
