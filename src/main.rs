@@ -127,12 +127,7 @@ fn main() {
                         Ok(out) => println!("{}", out),
                         Err(err) => println!("{}", err),
                     },
-                    Err(errs) => {
-                        for err in &errs {
-                            println!("{}", err)
-                        }
-                        report_error(errs, &input);
-                    }
+                    Err(errs) => report_error(errs, &input),
                 }
             }
             Err(err) => {
