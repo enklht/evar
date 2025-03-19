@@ -99,7 +99,7 @@ fn main() {
         prompt: "".into(),
     };
 
-    let mut editor = Editor::with_config(editor_config).unwrap();
+    let mut editor = Editor::with_config(editor_config).expect("failed to create editor");
     editor.set_helper(Some(helper));
     editor.bind_sequence(rustyline::KeyEvent::ctrl('f'), rustyline::Cmd::CompleteHint);
 
@@ -128,6 +128,9 @@ fn main() {
                         Err(err) => println!("{}", err),
                     },
                     Err(errs) => {
+                        for err in &errs {
+                            println!("{}", err)
+                        }
                         report_error(errs, &input);
                     }
                 }
@@ -155,6 +158,6 @@ fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
             }))
             .finish()
             .eprint(("", Source::from(input)))
-            .unwrap();
+            .expect("failed to report error");
     }
 }
