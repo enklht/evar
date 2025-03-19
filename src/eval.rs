@@ -16,13 +16,9 @@ fn factorial(n: f64) -> Result<f64, EvalError> {
 pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
     match expr {
         Expr::Number(f) => Ok(f),
-        Expr::BinaryOp {
-            op: operator,
-            lhs,
-            rhs,
-        } => {
+        Expr::BinaryOp { op, lhs, rhs } => {
             use BinaryOp::*;
-            match operator {
+            match op {
                 Add => Ok(eval(*lhs, context)? + eval(*rhs, context)?),
                 Sub => Ok(eval(*lhs, context)? - eval(*rhs, context)?),
                 Mul => Ok(eval(*lhs, context)? * eval(*rhs, context)?),
@@ -31,10 +27,15 @@ pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
                 Pow => Ok(eval(*lhs, context)?.powf(eval(*rhs, context)?)),
             }
         }
-        Expr::UnaryOp { op: operator, arg } => {
-            use UnaryOp::*;
-            match operator {
+        Expr::PrefixOp { op, arg } => {
+            use PrefixOp::*;
+            match op {
                 Neg => Ok(-eval(*arg, context)?),
+            }
+        }
+        Expr::PostfixOp { op, arg } => {
+            use PostfixOp::*;
+            match op {
                 Fac => factorial(eval(*arg, context)?),
             }
         }
@@ -128,14 +129,14 @@ mod tests {
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 2.0_f64.powf(3.0));
 
-        let expr = Expr::UnaryOp {
-            op: UnaryOp::Neg,
+        let expr = Expr::PrefixOp {
+            op: PrefixOp::Neg,
             arg: Box::new(Expr::Number(5.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), -5.0);
 
-        let expr = Expr::UnaryOp {
-            op: UnaryOp::Fac,
+        let expr = Expr::PostfixOp {
+            op: PostfixOp::Fac,
             arg: Box::new(Expr::Number(5.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 120.0); // 5! = 120
@@ -303,8 +304,8 @@ mod tests {
 
         let expr = Expr::BinaryOp {
             op: BinaryOp::Add,
-            lhs: Box::new(Expr::UnaryOp {
-                op: UnaryOp::Neg,
+            lhs: Box::new(Expr::PrefixOp {
+                op: PrefixOp::Neg,
                 arg: Box::new(Expr::Number(5.0)),
             }),
             rhs: Box::new(Expr::Number(3.0)),
@@ -313,8 +314,8 @@ mod tests {
 
         let expr = Expr::BinaryOp {
             op: BinaryOp::Sub,
-            lhs: Box::new(Expr::UnaryOp {
-                op: UnaryOp::Fac,
+            lhs: Box::new(Expr::PostfixOp {
+                op: PostfixOp::Fac,
                 arg: Box::new(Expr::Number(5.0)),
             }),
             rhs: Box::new(Expr::Number(119.0)),
