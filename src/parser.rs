@@ -8,10 +8,10 @@ pub fn parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
-    assignment_parser().or(expr_parser())
+    variable_definition().or(expression())
 }
 
-pub fn assignment_parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
+pub fn variable_definition<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
@@ -21,12 +21,12 @@ where
             Token::Ident(ident) => ident.to_string()
         })
         .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
-        .then(expr_parser().map(Box::new))
-        .map(|(name, expr)| Expr::Assignment { name, expr })
+        .then(expression().map(Box::new))
+        .map(|(name, expr)| Expr::DefVar { name, expr })
 }
 
 #[allow(clippy::let_and_return)]
-pub fn expr_parser<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
+pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {

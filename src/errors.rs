@@ -4,25 +4,25 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum EvalError {
     #[error("division by zero")]
-    ZeroDivionError,
+    DivisionByZero,
 
     #[error("domain error")]
-    DomainError,
+    MathDomain,
 
     #[error("overflow")]
-    OverFlowError,
+    Overflow,
 
     #[error("invalid number of arguments (expected: {expected}, found: {found})")]
-    InvalidNumberOfArgumentsError { expected: usize, found: usize },
+    InvalidNumberOfArguments { expected: usize, found: usize },
 
     #[error("function not found: {0}")]
-    FunctionNotFoundError(String),
+    FunctionNotFound(String),
 
     #[error("variable not found: {0}")]
-    VariableNotFoundError(String),
+    VariableNotFound(String),
 
-    #[error("failed to define variable: {0}")]
-    VariableAssignError(String),
+    #[error("failed to define a variable: {0}")]
+    InvalidVariableDefinition(String),
 }
 
 #[derive(Debug, Error)]

@@ -2,7 +2,7 @@
 pub enum Expr {
     Number(f64),
     Variable(String),
-    Assignment {
+    DefVar {
         name: String,
         expr: Box<Expr>,
     },
@@ -30,7 +30,7 @@ impl std::fmt::Display for Expr {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
             Expr::Variable(n) => write!(f, "{}", n),
-            Expr::Assignment { name, expr } => write!(f, "let {} := {}", name, expr),
+            Expr::DefVar { name, expr } => write!(f, "let {} := {}", name, expr),
             Expr::FnCall { name: fname, args } => {
                 let args_str = args
                     .iter()
