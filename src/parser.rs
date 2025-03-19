@@ -25,7 +25,6 @@ where
         .map(|(name, expr)| Stmt::DefVar { name, expr })
 }
 
-#[allow(clippy::let_and_return)]
 pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
@@ -44,7 +43,7 @@ where
         .labelled("number")
         .boxed();
 
-    let expr = recursive(|expr| {
+    recursive(|expr| {
         let fn_call = select! {
             Token::Ident(ident) => ident.to_string()
         }
@@ -153,9 +152,7 @@ where
             .boxed();
 
         sum.labelled("expression").as_context()
-    });
-
-    expr
+    })
 }
 
 #[cfg(test)]
