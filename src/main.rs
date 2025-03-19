@@ -83,7 +83,7 @@ fn report_error(
         }));
 
         let diagnostic = Diagnostic::error()
-            .with_message(err.to_string())
+            .with_message(err.reason().to_string())
             .with_labels(labels);
 
         term::emit(&mut writer.lock(), &config, &file, &diagnostic)
