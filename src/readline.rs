@@ -1,13 +1,13 @@
 use std::borrow::Cow;
 
 use crate::{args::Args, errors::SevaError, lexer::Token};
+use colored::Colorize;
 use logos::Logos;
 use rustyline::{
     Completer, Config, Editor, Helper, Highlighter, Hinter, Validator,
     completion::FilenameCompleter, highlight::Highlighter, hint::HistoryHinter,
     history::FileHistory, validate::MatchingBracketValidator,
 };
-use yansi::Paint;
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
 struct RustyLineHelper {
@@ -30,19 +30,19 @@ impl Highlighter for SevaHighlighter {
         let highlighted_line = tokens.fold(String::new(), |acc, (lex_result, span)| {
             acc + &{
                 match lex_result {
-                    Err(_) => format!("{}", line[span].rgb(237, 135, 150)),
+                    Err(_) => format!("{}", line[span].truecolor(237, 135, 150)),
                     Ok(token) => match token {
-                        Token::Number(_) => format!("{}", line[span].rgb(245, 169, 127)),
-                        Token::Ident(_) => format!("{}", line[span].rgb(138, 173, 244)),
+                        Token::Number(_) => format!("{}", line[span].truecolor(245, 169, 127)),
+                        Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
                         Token::Plus
                         | Token::Minus
                         | Token::Asterisk
                         | Token::Slash
                         | Token::Percent
                         | Token::Caret
-                        | Token::Exclamation => format!("{}", line[span].rgb(125, 196, 228)),
+                        | Token::Exclamation => format!("{}", line[span].truecolor(125, 196, 228)),
                         Token::LParen | Token::RParen => {
-                            format!("{}", line[span].rgb(238, 212, 159))
+                            format!("{}", line[span].truecolor(238, 212, 159))
                         }
                         _ => line[span].to_string(),
                     },
@@ -62,25 +62,23 @@ impl Highlighter for SevaHighlighter {
         kind != CmdKind::MoveCursor && kind != CmdKind::ForcedRefresh
     }
     fn highlight_hint<'h>(&self, hint: &'h str) -> Cow<'h, str> {
-        format!("{}", hint.rgb(91, 96, 120)).into()
+        format!("{}", hint.truecolor(91, 96, 120)).into()
     }
     fn highlight_prompt<'b, 's: 'b, 'p: 'b>(
         &'s self,
         prompt: &'p str,
         _default: bool,
     ) -> Cow<'b, str> {
-        format!("{}", prompt.rgb(166, 218, 149)).into()
+        format!("{}", prompt.truecolor(166, 218, 149)).into()
     }
 }
 
 pub struct SevaEditor(Editor<RustyLineHelper, FileHistory>);
 
 impl SevaEditor {
-    pub fn new(_args: &Args) -> SevaEditor {
-        if _args.no_color {
-            yansi::disable();
-        } else {
-            yansi::enable();
+    pub fn new(args: &Args) -> SevaEditor {
+        if args.no_color {
+            colored::control::set_override(false);
         }
 
         let editor_config = Config::builder()

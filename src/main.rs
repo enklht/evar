@@ -1,9 +1,16 @@
-use ariadne::{Color, Label, Report, ReportKind, Source};
 use chumsky::{
     input::{Input, Stream},
     prelude::*,
 };
 use clap::Parser as ClapParser;
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFile,
+    term::{
+        self,
+        termcolor::{ColorChoice, StandardStream},
+    },
+};
 use logos::Logos;
 use seva::{
     args::Args, context::Context, errors::SevaError, eval::eval, lexer::Token, parser::parser,
@@ -17,6 +24,13 @@ fn main() -> Result<(), SevaError> {
     let context = Context::new(&args);
 
     let mut editor = SevaEditor::new(&args);
+
+    let writer = StandardStream::stderr(if args.no_color {
+        ColorChoice::Never
+    } else {
+        ColorChoice::Auto
+    });
+    let config = codespan_reporting::term::Config::default();
 
     loop {
         let input = editor.readline()?;
@@ -43,28 +57,36 @@ fn main() -> Result<(), SevaError> {
                     Err(err) => println!("{}", err),
                 }
             }
-            Err(errs) => report_error(errs, &input),
+            Err(errs) => report_error(errs, &input, &writer, &config),
         }
     }
 
     Ok(())
 }
 
-fn report_error(errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
+fn report_error(
+    errs: Vec<Rich<'_, Token<'_>>>,
+    input: &str,
+    writer: &StandardStream,
+    config: &term::Config,
+) {
+    let file = SimpleFile::new("<repl>", input);
+
     for err in errs {
-        Report::build(ReportKind::Error, ("", err.span().into_range()))
-            .with_label(
-                Label::new(("", err.span().into_range()))
-                    .with_message(err.reason().to_string())
-                    .with_color(Color::Red),
-            )
-            .with_labels(err.contexts().map(|(label, span)| {
-                Label::new(("", span.into_range()))
-                    .with_message(format!("while parsing this {}", label))
-                    .with_color(Color::Yellow)
-            }))
-            .finish()
-            .eprint(("", Source::from(input)))
-            .expect("failed to report error");
+        let mut labels = vec![
+            Label::primary((), err.span().into_range()).with_message(err.reason().to_string()),
+        ];
+
+        labels.extend(err.contexts().map(|(label, span)| {
+            Label::secondary((), span.into_range())
+                .with_message(&format!("while parsing this {}", label))
+        }));
+
+        let diagnostic = Diagnostic::error()
+            .with_message(err.to_string())
+            .with_labels(labels);
+
+        term::emit(&mut writer.lock(), &config, &file, &diagnostic)
+            .expect("failed writing diagnostics");
     }
 }
