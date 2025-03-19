@@ -79,6 +79,7 @@ where
                 arg: Box::new(rhs),
             })
             .or(power.clone())
+            .padded_by(whitespace)
             .boxed();
 
         let powers = prefixed
