@@ -64,12 +64,14 @@ mod tests {
         fix: 10,
         base: 10,
         angle_unit: AngleUnit::Radian,
+        debug: false,
     };
 
     const DEGREE_ARGS: Args = Args {
         fix: 10,
         base: 10,
         angle_unit: AngleUnit::Degree,
+        debug: false,
     };
 
     #[test]

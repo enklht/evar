@@ -82,6 +82,7 @@ impl Highlighter for SevaHighlighter {
 
 fn main() {
     let args = Args::parse();
+    let debug = args.debug;
 
     let context = Context::new(args);
 
@@ -123,10 +124,15 @@ fn main() {
                     Stream::from_iter(token_iter).map((input.len()..input.len()).into(), |x| x);
 
                 match parser().parse(token_stream).into_result() {
-                    Ok(expr) => match eval(expr, &context) {
-                        Ok(out) => println!("{}", out),
-                        Err(err) => println!("{}", err),
-                    },
+                    Ok(expr) => {
+                        if debug {
+                            println!("{}", expr)
+                        };
+                        match eval(expr, &context) {
+                            Ok(out) => println!("{}", out),
+                            Err(err) => println!("{}", err),
+                        }
+                    }
                     Err(errs) => report_error(errs, &input),
                 }
             }
