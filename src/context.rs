@@ -49,7 +49,7 @@ macro_rules! binary_fn {
 }
 
 impl Context {
-    pub fn new(args: Args) -> Context {
+    pub fn new(args: &Args) -> Context {
         use crate::args::AngleUnit;
 
         let mut functions = HashMap::from(match args.angle_unit {

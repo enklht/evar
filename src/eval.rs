@@ -1,4 +1,8 @@
-use crate::{context::Context, errors::EvalError, types::*};
+use crate::{
+    context::Context,
+    errors::{EvalError, SevaError},
+    types::*,
+};
 
 fn factorial(n: f64) -> Result<f64, EvalError> {
     let n = n.round();
@@ -77,7 +81,7 @@ mod tests {
 
     #[test]
     fn test_eval_number() {
-        let radian_context: Context = Context::new(RADIAN_ARGS);
+        let radian_context: Context = Context::new(&RADIAN_ARGS);
 
         let expr = Expr::Number(5.0);
         assert_eq!(eval(expr, &radian_context).unwrap(), 5.0);
@@ -85,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_eval_basic_operations() {
-        let radian_context: Context = Context::new(RADIAN_ARGS);
+        let radian_context: Context = Context::new(&RADIAN_ARGS);
 
         let expr = Expr::BinaryOp {
             op: BinaryOp::Add,
@@ -144,8 +148,8 @@ mod tests {
 
     #[test]
     fn test_eval_functions() {
-        let radian_context: Context = Context::new(RADIAN_ARGS);
-        let degree_context: Context = Context::new(DEGREE_ARGS);
+        let radian_context: Context = Context::new(&RADIAN_ARGS);
+        let degree_context: Context = Context::new(&DEGREE_ARGS);
 
         let expr = Expr::FnCall {
             fname: "sin".into(),
@@ -264,7 +268,7 @@ mod tests {
 
     #[test]
     fn test_eval_mixed_operations() {
-        let radian_context: Context = Context::new(RADIAN_ARGS);
+        let radian_context: Context = Context::new(&RADIAN_ARGS);
 
         let expr = Expr::BinaryOp {
             op: BinaryOp::Add,

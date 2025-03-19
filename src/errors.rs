@@ -1,3 +1,4 @@
+use rustyline::error::ReadlineError;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -16,4 +17,10 @@ pub enum EvalError {
 
     #[error("function not found: {0}")]
     FunctionNotFoundError(String),
+}
+
+#[derive(Debug, Error)]
+pub enum SevaError {
+    #[error(transparent)]
+    ReadlineError(#[from] ReadlineError),
 }
