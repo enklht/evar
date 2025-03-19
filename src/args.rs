@@ -19,6 +19,9 @@ pub struct Args {
     /// Print parsed expression for debug purpose
     #[arg(short, long)]
     pub debug: bool,
+    /// Enable colored output
+    #[arg(long, default_value_t = false)]
+    pub no_color: bool,
     /// Angle Unit
     #[arg(value_enum, short, long, default_value_t = AngleUnit::Radian)]
     pub angle_unit: AngleUnit,

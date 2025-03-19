@@ -10,7 +10,7 @@
     "std",
   ] }
   clap = { version = "4.5.32", features = ["derive"] }
-  colored = "3.0.0"
   logos = "0.15.0"
   rustyline = { version = "15.0.0", features = ["derive"] }
   thiserror = "2.0.12"
+yansi = "1.0.1"

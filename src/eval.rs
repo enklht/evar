@@ -1,8 +1,4 @@
-use crate::{
-    context::Context,
-    errors::{EvalError, SevaError},
-    types::*,
-};
+use crate::{context::Context, errors::EvalError, types::*};
 
 fn factorial(n: f64) -> Result<f64, EvalError> {
     let n = n.round();
@@ -70,6 +66,7 @@ mod tests {
         base: 10,
         angle_unit: AngleUnit::Radian,
         debug: false,
+        no_color: false,
     };
 
     const DEGREE_ARGS: Args = Args {
@@ -77,6 +74,7 @@ mod tests {
         base: 10,
         angle_unit: AngleUnit::Degree,
         debug: false,
+        no_color: false,
     };
 
     #[test]
