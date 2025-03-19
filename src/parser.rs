@@ -55,7 +55,11 @@ where
             .or(atomic.clone())
             .boxed();
 
-        let term = postfixed.padded_by(whitespace.clone()).boxed();
+        let term = postfixed
+            .padded_by(whitespace.clone())
+            .labelled("term")
+            .as_context()
+            .boxed();
 
         let power = term
             .clone()
