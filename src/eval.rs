@@ -16,8 +16,8 @@ fn factorial(n: f64) -> Result<f64, EvalError> {
 pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
     match expr {
         Expr::Number(f) => Ok(f),
-        Expr::BinaryOp { op, lhs, rhs } => {
-            use BinaryOp::*;
+        Expr::InfixOp { op, lhs, rhs } => {
+            use InfixOp::*;
             match op {
                 Add => Ok(eval(*lhs, context)? + eval(*rhs, context)?),
                 Sub => Ok(eval(*lhs, context)? - eval(*rhs, context)?),
@@ -89,43 +89,43 @@ mod tests {
     fn test_eval_basic_operations() {
         let radian_context: Context = Context::new(&RADIAN_ARGS);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Add,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Add,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 2.0 + 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Sub,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Sub,
             lhs: Box::new(Expr::Number(5.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 5.0 - 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Mul,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Mul,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 2.0 * 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Div,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Div,
             lhs: Box::new(Expr::Number(6.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 6.0 / 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Rem,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Rem,
             lhs: Box::new(Expr::Number(7.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 7.0 % 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Pow,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Pow,
             lhs: Box::new(Expr::Number(2.0)),
             rhs: Box::new(Expr::Number(3.0)),
         };
@@ -268,10 +268,10 @@ mod tests {
     fn test_eval_mixed_operations() {
         let radian_context: Context = Context::new(&RADIAN_ARGS);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Add,
-            lhs: Box::new(Expr::BinaryOp {
-                op: BinaryOp::Mul,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Add,
+            lhs: Box::new(Expr::InfixOp {
+                op: InfixOp::Mul,
                 lhs: Box::new(Expr::Number(2.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
@@ -279,21 +279,21 @@ mod tests {
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), (2.0 * 3.0) + 4.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Sub,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Sub,
             lhs: Box::new(Expr::Number(10.0)),
-            rhs: Box::new(Expr::BinaryOp {
-                op: BinaryOp::Div,
+            rhs: Box::new(Expr::InfixOp {
+                op: InfixOp::Div,
                 lhs: Box::new(Expr::Number(6.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 10.0 - (6.0 / 3.0));
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Rem,
-            lhs: Box::new(Expr::BinaryOp {
-                op: BinaryOp::Pow,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Rem,
+            lhs: Box::new(Expr::InfixOp {
+                op: InfixOp::Pow,
                 lhs: Box::new(Expr::Number(2.0)),
                 rhs: Box::new(Expr::Number(3.0)),
             }),
@@ -304,8 +304,8 @@ mod tests {
             2.0_f64.powf(3.0) % 3.0
         );
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Add,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Add,
             lhs: Box::new(Expr::PrefixOp {
                 op: PrefixOp::Neg,
                 arg: Box::new(Expr::Number(5.0)),
@@ -314,8 +314,8 @@ mod tests {
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), -5.0 + 3.0);
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Sub,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Sub,
             lhs: Box::new(Expr::PostfixOp {
                 op: PostfixOp::Fac,
                 arg: Box::new(Expr::Number(5.0)),
@@ -324,8 +324,8 @@ mod tests {
         };
         assert_eq!(eval(expr, &radian_context).unwrap(), 120.0 - 119.0); // 5! - 119
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Mul,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Mul,
             lhs: Box::new(Expr::FnCall {
                 fname: "sin".into(),
                 args: vec![Expr::Number(std::f64::consts::PI / 2.0)],
@@ -337,8 +337,8 @@ mod tests {
             (std::f64::consts::PI / 2.0).sin() * 2.0
         );
 
-        let expr = Expr::BinaryOp {
-            op: BinaryOp::Add,
+        let expr = Expr::InfixOp {
+            op: InfixOp::Add,
             lhs: Box::new(Expr::FnCall {
                 fname: "log".into(),
                 args: vec![Expr::Number(8.0), Expr::Number(2.0)],
