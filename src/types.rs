@@ -1,6 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub enum Expr {
     Number(f64),
+    Variable(String),
     FnCall {
         fname: String,
         args: Vec<Expr>,
@@ -24,6 +25,7 @@ impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
+            Expr::Variable(n) => write!(f, "{}", n),
             Expr::FnCall { fname, args } => {
                 let args_str = args
                     .iter()

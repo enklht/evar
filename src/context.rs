@@ -4,6 +4,7 @@ use crate::{args::Args, errors::EvalError, types::Expr};
 
 pub struct Context {
     functions: HashMap<String, Function>,
+    variables: HashMap<String, Variable>,
 }
 
 macro_rules! unary_fn {
@@ -102,11 +103,40 @@ impl Context {
             functions.insert(fname, function);
         }
 
-        Context { functions }
+        let variables = [
+            ("e".to_string(), Variable::External(std::f64::consts::E)),
+            ("pi".to_string(), Variable::External(std::f64::consts::PI)),
+            ("tau".to_string(), Variable::External(std::f64::consts::TAU)),
+        ]
+        .into();
+
+        Context {
+            functions,
+            variables,
+        }
     }
 
     pub fn get_function(&self, name: &str) -> Option<&Function> {
         self.functions.get(name)
+    }
+
+    pub fn get_variable(&self, name: &str) -> Option<&Variable> {
+        self.variables.get(name)
+    }
+}
+
+pub enum Variable {
+    External(f64),
+    Internal(f64),
+}
+
+impl Variable {
+    pub fn get(&self) -> f64 {
+        use Variable::*;
+        match self {
+            External(n) => *n,
+            Internal(n) => *n,
+        }
     }
 }
 

@@ -37,9 +37,15 @@ where
         })
         .boxed();
 
+        let variable = select! {
+            Token::Ident(ident) => Expr::Variable(ident.to_string())
+        }
+        .labelled("ident");
+
         let atomic = choice((
             number.clone(),
             fn_call,
+            variable,
             expr.clone()
                 .delimited_by(just(Token::LParen), just(Token::RParen)),
         ))
