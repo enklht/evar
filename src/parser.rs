@@ -73,7 +73,14 @@ where
             .boxed();
 
         let prefixed = choice((just(Token::Minus).to(UnaryOp::Neg),))
-            .then(power.clone().and_is(number.clone().not()))
+            .then(
+                power.clone().and_is(
+                    select! {
+                        Token::Number(_)
+                    }
+                    .not(),
+                ),
+            )
             .map(|(op, rhs)| Expr::UnaryOp {
                 op,
                 arg: Box::new(rhs),
@@ -197,7 +204,6 @@ mod tests {
         // Tests that should fail
         assert!(parse("abc").is_err());
         assert!(parse("0.").is_err());
-        assert!(parse("- 3").is_err());
         assert!(parse("1..2").is_err());
         assert!(parse("1e").is_err());
         assert!(parse("1e--3").is_err());
@@ -340,9 +346,20 @@ mod tests {
                 Number(-3.)
             ))
         );
+        assert_eq!(
+            parse("- 6*3"),
+            Ok(binop!(Mul, unop!(Neg, Number(6.)), Number(3.)))
+        );
+        assert_eq!(
+            parse("(5 % 3)  2"),
+            Ok(binop!(Mul, binop!(Rem, Number(5.), Number(3.)), Number(2.)))
+        );
+        assert_eq!(
+            parse("2 * - 3"),
+            Ok(binop!(Mul, Number(2.), unop!(Neg, Number(3.))))
+        );
 
         // Failing tests
-        assert!(parse("- 6*3").is_err());
         assert!(parse("2 ** 3").is_err());
         assert!(parse("2 // 3").is_err());
         assert!(parse("2 %% 3").is_err());
@@ -352,7 +369,6 @@ mod tests {
         assert!(parse("2 + 3 *").is_err());
         assert!(parse("2 * (3 + 4").is_err());
         assert!(parse("2 * 3 + 4)").is_err());
-        assert!(parse("2 * - 3").is_err());
         assert!(parse("2 * (3 + )").is_err());
         assert!(parse("2 * (3 + 4))").is_err());
         assert!(parse("2 * ((3 + 4)").is_err());
@@ -362,7 +378,6 @@ mod tests {
         assert!(parse("2 * (3 + 4) - 5 %").is_err());
         assert!(parse("2 * (3 + 4) - 5 % 6)").is_err());
         assert!(parse("--3").is_err());
-        assert!(parse("(5 % 3)  2").is_err(),);
     }
 
     #[test]
@@ -413,6 +428,23 @@ mod tests {
 
         // Failing tests for binary function calls
         assert!(parse("log(abc, 10)").is_err());
+        assert!(parse("log(1, abc)").is_err());
+        assert!(parse("log(1, )").is_err()); // Missing second argument with trailing comma
+        assert!(parse("log(, 10)").is_err()); // Missing first argument
+        assert!(parse("log(1 10)").is_err()); // Missing comma between arguments
+        assert!(parse("log(1, 10").is_err()); // Missing closing parenthesis
+        assert!(parse("log 1, 10)").is_err()); // Missing opening parenthesis
+        assert!(parse("log(1, 10))").is_err()); // Extra closing parenthesis
+        assert!(parse("log((1, 10)").is_err()); // Extra opening parenthesis
+        assert!(parse("log(1, (10)").is_err()); // Unmatched parentheses
+        assert!(parse("log(1, 10))").is_err()); // Extra closing parenthesis
+        assert!(parse("log(1, 10) +").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) -").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) *").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) /").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) %").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) ^").is_err()); // Trailing operator
+        assert!(parse("log(1, 10) !").is_err()); // Trailing operator
     }
 
     #[test]
@@ -477,6 +509,14 @@ mod tests {
                 )
             ))
         );
+        assert_eq!(
+            parse("2 (3 + 4) 5"),
+            Ok(binop!(
+                Mul,
+                binop!(Mul, Number(2.), binop!(Add, Number(3.), Number(4.))),
+                Number(5.)
+            ))
+        );
 
         // Failing tests
         assert!(parse("2 (3 + 4").is_err());
@@ -490,7 +530,6 @@ mod tests {
         assert!(parse("2 (3 + 4) -").is_err());
         assert!(parse("2 (3 + 4) - 5 %").is_err());
         assert!(parse("2 (3 + 4) - 5 % 6)").is_err());
-        assert!(parse("2 (3 + 4) 5").is_err());
     }
 
     #[test]
@@ -594,6 +633,32 @@ mod tests {
                 }
             ))
         );
+        assert_eq!(
+            parse("2 3 + sin(4)"),
+            Ok(binop!(
+                Add,
+                binop!(Mul, Number(2.), Number(3.)),
+                Expr::FnCall {
+                    fname: "sin".into(),
+                    args: vec![Number(4.)],
+                }
+            ))
+        );
+        assert_eq!(
+            parse("sin(4) 2 + 3"),
+            Ok(binop!(
+                Add,
+                binop!(
+                    Mul,
+                    Expr::FnCall {
+                        fname: "sin".into(),
+                        args: vec![Number(4.)],
+                    },
+                    Number(2.)
+                ),
+                Number(3.)
+            ))
+        );
 
         // Failing tests for mixed operations
 
@@ -608,12 +673,6 @@ mod tests {
 
         // Invalid character in expression
         assert!(parse("2 * (3 + sin(4) @)").is_err());
-
-        // Missing operator between numbers
-        assert!(parse("2 3 + sin(4)").is_err());
-
-        // Missing operator between function call and number
-        assert!(parse("sin(4) 2 + 3").is_err());
 
         // Unmatched parentheses
         assert!(parse("2 * (3 + sin(4)) + (5").is_err());
