@@ -10,12 +10,12 @@ pub enum AngleUnit {
 #[command(version, about)]
 /// Command line arguments for the application
 pub struct Args {
-    /// Number of decimal places in output
-    #[arg(short, long, default_value_t = 10)]
-    pub fix: u8,
-    /// Radix of calculation output
-    #[arg(short, long, default_value_t = 10)]
-    pub base: u8,
+    // /// Number of decimal places in output
+    // #[arg(short, long, default_value_t = 10)]
+    // pub fix: u8,
+    // /// Radix of calculation output
+    // #[arg(short, long, default_value_t = 10)]
+    // pub base: u8,
     /// Print parsed expression for debug purpose
     #[arg(short, long)]
     pub debug: bool,
