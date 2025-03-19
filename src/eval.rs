@@ -60,7 +60,7 @@ pub fn eval(expr: Expr, context: &mut Context) -> Result<f64, EvalError> {
             let val = eval(*expr, context)?;
             let variable = context
                 .set_variable(&name, val)
-                .ok_or(EvalError::VariableNotFoundError(name))?;
+                .ok_or(EvalError::VariableAssignError(name))?;
             Ok(0.)
         }
     }

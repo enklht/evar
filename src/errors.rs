@@ -20,6 +20,9 @@ pub enum EvalError {
 
     #[error("variable not found: {0}")]
     VariableNotFoundError(String),
+
+    #[error("failed to define variable: {0}")]
+    VariableAssignError(String),
 }
 
 #[derive(Debug, Error)]
