@@ -35,7 +35,7 @@ fn main() -> Result<(), SevaError> {
     loop {
         let input = editor.readline()?;
 
-        if input == *"exit" {
+        if input == "exit" {
             break;
         };
 
