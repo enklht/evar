@@ -44,6 +44,8 @@ impl Highlighter for SevaHighlighter {
                         Token::LParen | Token::RParen => {
                             format!("{}", line[span].truecolor(238, 212, 159))
                         }
+                        Token::Let => format!("{}", line[span].truecolor(198, 160, 246)),
+                        Token::Equal => format!("{}", line[span].truecolor(125, 196, 228)),
                         _ => line[span].to_string(),
                     },
                 }
