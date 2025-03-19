@@ -68,16 +68,16 @@ mod tests {
     use super::*;
 
     const RADIAN_ARGS: Args = Args {
-        fix: 10,
-        base: 10,
+        // fix: 10,
+        // base: 10,
         angle_unit: AngleUnit::Radian,
         debug: false,
         no_color: false,
     };
 
     const DEGREE_ARGS: Args = Args {
-        fix: 10,
-        base: 10,
+        // fix: 10,
+        // base: 10,
         angle_unit: AngleUnit::Degree,
         debug: false,
         no_color: false,
