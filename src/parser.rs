@@ -1,9 +1,6 @@
-use std::sync::Arc;
-
 use crate::lexer::Token;
 use crate::types::*;
 
-use chumsky::cache::Cached;
 use chumsky::input::ValueInput;
 use chumsky::prelude::*;
 
