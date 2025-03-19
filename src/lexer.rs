@@ -56,3 +56,10 @@ impl std::fmt::Display for Token<'_> {
         }
     }
 }
+
+pub fn lex<'a>(input: &'a str) -> impl Iterator<Item = (Token<'a>, std::ops::Range<usize>)> {
+    Token::lexer(&input).spanned().map(|(tok, span)| match tok {
+        Ok(tok) => (tok, span),
+        Err(()) => (Token::Error, span),
+    })
+}
