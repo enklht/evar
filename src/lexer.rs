@@ -1,5 +1,3 @@
-use std::fmt;
-
 use logos::Logos;
 
 #[derive(Logos, Clone, PartialEq, Debug)]
@@ -38,8 +36,8 @@ pub enum Token<'a> {
     Ident(&'a str),
 }
 
-impl fmt::Display for Token<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl std::fmt::Display for Token<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Error => write!(f, "unknown symbol"),
             Self::Space => write!(f, " "),
