@@ -49,6 +49,12 @@ pub fn eval(expr: Expr, context: &Context) -> Result<f64, EvalError> {
             }
             function.call(evaluated_args)
         }
+        Expr::Variable(name) => {
+            let variable = context
+                .get_variable(&name)
+                .ok_or(EvalError::VariableNotFoundError(name))?;
+            Ok(variable.get())
+        }
     }
 }
 

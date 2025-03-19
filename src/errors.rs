@@ -17,6 +17,9 @@ pub enum EvalError {
 
     #[error("function not found: {0}")]
     FunctionNotFoundError(String),
+
+    #[error("variable not found: {0}")]
+    VariableNotFoundError(String),
 }
 
 #[derive(Debug, Error)]
