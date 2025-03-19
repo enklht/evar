@@ -176,7 +176,7 @@ impl Function {
                 if args.len() == *arity {
                     Ok(body(args))
                 } else {
-                    Err(EvalError::InvalidNumberOfArgumentsError {
+                    Err(EvalError::InvalidNumberOfArguments {
                         expected: *arity,
                         found: args.len(),
                     })

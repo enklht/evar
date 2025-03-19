@@ -3,13 +3,13 @@ use crate::{context::Context, errors::EvalError, types::*};
 fn factorial(n: f64) -> Result<f64, EvalError> {
     let n = n.round();
     if n < 0. {
-        return Err(EvalError::DomainError);
+        return Err(EvalError::MathDomain);
     }
     let result = (1..=n as u128).try_fold(1_u128, |acc, x| acc.checked_mul(x));
 
     match result {
         Some(n) => Ok(n as f64),
-        None => Err(EvalError::OverFlowError),
+        None => Err(EvalError::Overflow),
     }
 }
 
@@ -47,20 +47,20 @@ pub fn eval(expr: Expr, context: &mut Context) -> Result<f64, EvalError> {
 
             let function = context
                 .get_function(&fname)
-                .ok_or(EvalError::FunctionNotFoundError(fname))?;
+                .ok_or(EvalError::FunctionNotFound(fname))?;
             function.call(evaluated_args)
         }
         Expr::Variable(name) => {
             let variable = context
                 .get_variable(&name)
-                .ok_or(EvalError::VariableNotFoundError(name))?;
+                .ok_or(EvalError::VariableNotFound(name))?;
             Ok(variable.get())
         }
-        Expr::Assignment { name, expr } => {
+        Expr::DefVar { name, expr } => {
             let val = eval(*expr, context)?;
             let variable = context
                 .set_variable(&name, val)
-                .ok_or(EvalError::VariableAssignError(name))?;
+                .ok_or(EvalError::InvalidVariableDefinition(name))?;
             Ok(variable)
         }
     }
