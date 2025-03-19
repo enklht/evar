@@ -120,6 +120,18 @@ impl Context {
         self.functions.get(name)
     }
 
+    pub fn set_function(&mut self, name: &str, args: Vec<String>, body: Expr) -> Option<()> {
+        self.functions.insert(
+            name.to_string(),
+            Function::Internal {
+                arity: args.len(),
+                args,
+                body,
+            },
+        );
+        Some(())
+    }
+
     pub fn get_variable(&self, name: &str) -> Option<&Variable> {
         self.variables.get(name)
     }
@@ -165,6 +177,7 @@ pub enum Function {
     },
     Internal {
         arity: usize,
+        args: Vec<String>,
         body: Expr,
     },
 }
@@ -182,7 +195,11 @@ impl Function {
                     })
                 }
             }
-            Function::Internal { arity: _, body: _ } => {
+            Function::Internal {
+                arity: _,
+                args: _,
+                body: _,
+            } => {
                 todo!()
             }
         }
