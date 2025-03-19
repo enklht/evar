@@ -1,29 +1,18 @@
-use derive_more::Display;
-
-#[derive(Debug, PartialEq, Display)]
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     Number(f64),
-
-    #[display(
-        "{}({})",
-        fname,
-        args.iter()
-            .map(|x| x.to_string())
-            .reduce(|acc, x| acc + ", " + &x)
-            .unwrap_or("".into())
-    )]
     FnCall {
         fname: String,
         args: Vec<Expr>,
     },
-
-    #[display("({} {})", arg, op)]
-    UnaryOp {
-        op: UnaryOp,
+    PrefixOp {
+        op: PrefixOp,
         arg: Box<Expr>,
     },
-
-    #[display("({} {} {})", lhs, op, rhs)]
+    PostfixOp {
+        op: PostfixOp,
+        arg: Box<Expr>,
+    },
     BinaryOp {
         op: BinaryOp,
         lhs: Box<Expr>,
@@ -31,26 +20,73 @@ pub enum Expr {
     },
 }
 
-#[derive(Debug, PartialEq, Clone, Display)]
-pub enum UnaryOp {
-    #[display("neg")]
+impl std::fmt::Display for Expr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Expr::Number(n) => write!(f, "{}", n),
+            Expr::FnCall { fname, args } => {
+                let args_str = args
+                    .iter()
+                    .map(|x| x.to_string())
+                    .reduce(|acc, x| acc + ", " + &x)
+                    .unwrap_or_else(|| "".into());
+                write!(f, "{}({})", fname, args_str)
+            }
+            Expr::PrefixOp { op, arg } => write!(f, "({}{})", op, arg),
+            Expr::PostfixOp { op, arg } => write!(f, "({}{})", arg, op),
+            Expr::BinaryOp { op, lhs, rhs } => write!(f, "({} {} {})", lhs, op, rhs),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum PrefixOp {
     Neg,
-    #[display("!")]
+}
+
+impl std::fmt::Display for PrefixOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let op_str = match self {
+            PrefixOp::Neg => "-",
+        };
+        write!(f, "{}", op_str)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum PostfixOp {
     Fac,
 }
 
-#[derive(Debug, PartialEq, Clone, Display)]
+impl std::fmt::Display for PostfixOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let op_str = match self {
+            PostfixOp::Fac => "!",
+        };
+        write!(f, "{}", op_str)
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum BinaryOp {
-    #[display("+")]
     Add,
-    #[display("-")]
     Sub,
-    #[display("*")]
     Mul,
-    #[display("/")]
     Div,
-    #[display("%")]
     Rem,
-    #[display("^")]
     Pow,
+}
+
+impl std::fmt::Display for BinaryOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let op_str = match self {
+            BinaryOp::Add => "+",
+            BinaryOp::Sub => "-",
+            BinaryOp::Mul => "*",
+            BinaryOp::Div => "/",
+            BinaryOp::Rem => "%",
+            BinaryOp::Pow => "^",
+        };
+        write!(f, "{}", op_str)
+    }
 }
