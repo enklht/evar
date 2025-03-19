@@ -55,7 +55,23 @@ where
             .or(atomic.clone())
             .boxed();
 
-        let term = postfixed
+        let prefixed = choice((just(Token::Minus).to(UnaryOp::Neg),))
+            .then(
+                postfixed.clone().and_is(
+                    select! {
+                        Token::Number(_)
+                    }
+                    .not(),
+                ),
+            )
+            .map(|(op, rhs)| Expr::UnaryOp {
+                op,
+                arg: Box::new(rhs),
+            })
+            .or(postfixed.clone())
+            .boxed();
+
+        let term = prefixed
             .padded_by(whitespace.clone())
             .labelled("term")
             .as_context()
@@ -72,24 +88,8 @@ where
             })
             .boxed();
 
-        let prefixed = choice((just(Token::Minus).to(UnaryOp::Neg),))
-            .then(
-                power.clone().and_is(
-                    select! {
-                        Token::Number(_)
-                    }
-                    .not(),
-                ),
-            )
-            .map(|(op, rhs)| Expr::UnaryOp {
-                op,
-                arg: Box::new(rhs),
-            })
-            .or(power.clone())
-            .padded_by(whitespace)
-            .boxed();
-
-        let powers = prefixed
+        let powers = power
+            .clone()
             .foldl(
                 power.and_is(just(Token::Minus).not()).repeated(),
                 |lhs, rhs| Expr::BinaryOp {
