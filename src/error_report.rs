@@ -22,7 +22,7 @@ impl ErrorReporter {
             ColorChoice::Auto
         });
         ErrorReporter {
-            writer: writer,
+            writer,
             config: codespan_reporting::term::Config::default(),
         }
     }
@@ -37,7 +37,7 @@ impl ErrorReporter {
 
             labels.extend(err.contexts().map(|(label, span)| {
                 Label::secondary((), span.into_range())
-                    .with_message(&format!("while parsing this {}", label))
+                    .with_message(format!("while partang this {}", label))
             }));
 
             let diagnostic = Diagnostic::error()

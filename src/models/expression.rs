@@ -97,7 +97,7 @@ impl Expr {
                 }
 
                 let function = fcontext
-                    .get_function(&fname)
+                    .get_function(fname)
                     .ok_or(EvalError::FunctionNotFound(fname.to_string()))?;
 
                 function.call(evaluated_args, fcontext, vcontext)
@@ -105,7 +105,7 @@ impl Expr {
             Expr::Variable(name) => {
                 let variable = vcontext
                     .borrow()
-                    .get_variable(&name)
+                    .get_variable(name)
                     .ok_or(EvalError::VariableNotFound(name.to_string()))?
                     .get();
                 Ok(variable)
