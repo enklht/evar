@@ -1,4 +1,4 @@
-use super::Expr;
+use super::{Context, EvalError, Expr};
 
 pub enum Function {
     External {
@@ -12,26 +12,29 @@ pub enum Function {
     },
 }
 
-// impl Function {
-//     pub fn call(&self, args: Vec<f64>) -> Result<f64, EvalError> {
-//         match self {
-//             Function::External { arity, body } => {
-//                 if args.len() == *arity {
-//                     Ok(body(args))
-//                 } else {
-//                     Err(EvalError::InvalidNumberOfArguments {
-//                         expected: *arity,
-//                         found: args.len(),
-//                     })
-//                 }
-//             }
-//             Function::Internal {
-//                 arity: _,
-//                 args: _,
-//                 body: _,
-//             } => {
-//                 todo!()
-//             }
-//         }
-//     }
-// }
+impl Function {
+    pub fn call(&self, args: Vec<f64>, context: &Context) -> Result<f64, EvalError> {
+        match self {
+            Function::External { arity, body } => {
+                if args.len() == *arity {
+                    Ok(body(args))
+                } else {
+                    Err(EvalError::InvalidNumberOfArguments {
+                        expected: *arity,
+                        found: args.len(),
+                    })
+                }
+            }
+            Function::Internal { arity, args, body } => {
+                if args.len() == *arity {
+                    body.eval(context)
+                } else {
+                    Err(EvalError::InvalidNumberOfArguments {
+                        expected: *arity,
+                        found: args.len(),
+                    })
+                }
+            }
+        }
+    }
+}

@@ -45,9 +45,9 @@ impl std::fmt::Display for Expr {
 }
 
 impl Expr {
-    pub fn eval(self, context: &mut Context) -> Result<f64, EvalError> {
+    pub fn eval(&self, context: &Context) -> Result<f64, EvalError> {
         match self {
-            Expr::Number(f) => Ok(f),
+            Expr::Number(f) => Ok(*f),
             Expr::InfixOp { op, lhs, rhs } => {
                 use InfixOp::*;
                 match op {
@@ -79,14 +79,14 @@ impl Expr {
 
                 let function = context
                     .get_function(&fname)
-                    .ok_or(EvalError::FunctionNotFound(fname))?;
-                // function.call(evaluated_args);
-                todo!()
+                    .ok_or(EvalError::FunctionNotFound(fname.to_string()))?;
+
+                function.call(evaluated_args, context)
             }
             Expr::Variable(name) => {
                 let variable = context
                     .get_variable(&name)
-                    .ok_or(EvalError::VariableNotFound(name))?;
+                    .ok_or(EvalError::VariableNotFound(name.to_string()))?;
                 Ok(variable.get())
             }
         }
