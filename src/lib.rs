@@ -7,6 +7,6 @@ mod parser;
 pub mod readline;
 
 pub use default_context::create_context;
-pub use error_report::{create_writer, report_error};
+pub use error_report::ErrorReporter;
 pub use lexer::lex;
 pub use parser::parser;

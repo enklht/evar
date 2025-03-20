@@ -3,23 +3,15 @@ use chumsky::{
     prelude::*,
 };
 use clap::Parser as ClapParser;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use seva::{args::Args, create_context, lex, parser, readline::SevaEditor, report_error};
+use seva::{ErrorReporter, args::Args, create_context, lex, parser, readline::SevaEditor};
 
 fn main() {
     let args = Args::parse();
     let debug = args.debug;
 
     let mut context = create_context(&args);
-
     let mut editor = SevaEditor::new(&args);
-
-    let writer = StandardStream::stderr(if args.no_color {
-        ColorChoice::Never
-    } else {
-        ColorChoice::Auto
-    });
-    let config = codespan_reporting::term::Config::default();
+    let mut reporter = ErrorReporter::new(args.no_color);
 
     loop {
         let input = editor.readline();
@@ -42,10 +34,10 @@ fn main() {
                 };
                 match stmt.eval(&mut context) {
                     Ok(out) => println!("{}", out),
-                    Err(err) => println!("{}", err),
+                    Err(err) => eprintln!("{}", err),
                 }
             }
-            Err(errs) => report_error(errs, &input, &writer, &config),
+            Err(errs) => reporter.report_error(errs, &input),
         }
     }
 }
