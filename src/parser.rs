@@ -237,6 +237,30 @@ mod tests {
         })
     }
 
+    fn parse_var_def(input: &str) -> Result<Stmt, String> {
+        use crate::lexer::Token;
+        use chumsky::input::Stream;
+        use logos::Logos;
+
+        let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
+            Ok(tok) => (tok, span.into()),
+            Err(()) => (Token::Error, span.into()),
+        });
+
+        let token_stream =
+            Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
+
+        variable_definition()
+            .parse(token_stream)
+            .into_result()
+            .map_err(|_| {
+                format!(
+                    "failed to parse {:?}",
+                    token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
+                )
+            })
+    }
+
     #[test]
     fn number() {
         assert_eq!(parse_expr("1"), Ok(Number(1.)));
@@ -255,19 +279,14 @@ mod tests {
         assert_eq!(parse_expr("-2.5e-2"), Ok(Number(-2.5e-2)));
 
         // Tests that should fail
-        assert!(parse_expr("abc").is_err());
         assert!(parse_expr("0.").is_err());
         assert!(parse_expr("1..2").is_err());
-        assert!(parse_expr("1e").is_err());
         assert!(parse_expr("1e--3").is_err());
         assert!(parse_expr("2.5.2").is_err());
         assert!(parse_expr("1e3.5").is_err());
-        assert!(parse_expr("1 e3").is_err());
-        assert!(parse_expr("1e 3").is_err());
         assert!(parse_expr("1e3 .5").is_err());
         assert!(parse_expr("1e3. 5").is_err());
         assert!(parse_expr("1e3 . 5").is_err());
-        assert!(parse_expr("1 e 3").is_err());
     }
 
     #[test]
@@ -453,10 +472,6 @@ mod tests {
             })
         );
 
-        // Failing tests for unary function calls
-        assert!(parse_expr("sin(-3.)").is_err());
-        assert!(parse_expr("sin(abc)").is_err());
-
         // Binary function calls
         assert_eq!(
             parse_expr("log(1, 10)"),
@@ -480,9 +495,8 @@ mod tests {
             })
         );
 
-        // Failing tests for binary function calls
-        assert!(parse_expr("log(abc, 10)").is_err());
-        assert!(parse_expr("log(1, abc)").is_err());
+        // Failing tests for calls
+        assert!(parse_expr("sin(-3.)").is_err());
         assert!(parse_expr("log(1, )").is_err()); // Missing second argument with trailing comma
         assert!(parse_expr("log(, 10)").is_err()); // Missing first argument
         assert!(parse_expr("log(1, 10").is_err()); // Missing closing parenthesis
@@ -569,9 +583,7 @@ mod tests {
         // Failing tests
         assert!(parse_expr("2 (3 + 4").is_err());
         assert!(parse_expr("2 3 + 4)").is_err());
-        assert!(parse_expr("2 sin 3)").is_err());
         assert!(parse_expr("2 (3 + sin(4)").is_err());
-        assert!(parse_expr("2 (3 + sin 4)").is_err());
         assert!(parse_expr("2 (3 + 4))").is_err());
         assert!(parse_expr("2 (3 + (4)").is_err());
         assert!(parse_expr("2 (3 + 4))").is_err());
@@ -713,9 +725,6 @@ mod tests {
         // Missing closing parenthesis
         assert!(parse_expr("2 * (3 + sin(4)").is_err());
 
-        // Missing opening parenthesis
-        assert!(parse_expr("2 * 3 + sin 4)").is_err());
-
         // Extra comma in log function
         assert!(parse_expr("log(2, 3,) + sin(4)").is_err());
 
@@ -730,8 +739,38 @@ mod tests {
 
         // Invalid number format
         assert!(parse_expr("2 * (3 + sin(4.5.6))").is_err());
+    }
 
-        // Invalid character in function argument
-        assert!(parse_expr("sin(2 + 3a) + 4").is_err());
+    #[test]
+    fn variable_definition_test() {
+        assert_eq!(
+            parse_var_def("let x = 42"),
+            Ok(Stmt::DefVar {
+                name: "x".into(),
+                expr: Expr::Number(42.),
+            })
+        );
+
+        assert_eq!(
+            parse_var_def("let y = 3.14"),
+            Ok(Stmt::DefVar {
+                name: "y".into(),
+                expr: Expr::Number(3.14),
+            })
+        );
+
+        assert_eq!(
+            parse_var_def("let z = x + y"),
+            Ok(Stmt::DefVar {
+                name: "z".into(),
+                expr: binop!(Add, Expr::Variable("x".into()), Expr::Variable("y".into()))
+            })
+        );
+
+        // Failing tests
+        assert!(parse_var_def("let = 42").is_err());
+        assert!(parse_var_def("let x 42").is_err());
+        assert!(parse_var_def("let x = ").is_err());
+        assert!(parse_var_def("let 42 = x").is_err());
     }
 }
