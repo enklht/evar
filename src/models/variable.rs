@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub enum Variable {
     External(f64),
     Internal(f64),

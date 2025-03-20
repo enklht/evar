@@ -40,8 +40,14 @@ impl VariableContext {
         }
     }
 
-    pub fn get_variable(&self, name: &str) -> Option<&Variable> {
-        self.variables.get(name)
+    pub fn get_variable(&self, name: &str) -> Option<Variable> {
+        if let Some(val) = self.variables.get(name) {
+            Some(val.clone())
+        } else if let Some(parent) = &self.parent {
+            parent.borrow().get_variable(name)
+        } else {
+            None
+        }
     }
 
     pub fn set_variable(&mut self, name: &str, n: f64) -> Option<f64> {
