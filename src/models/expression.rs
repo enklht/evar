@@ -126,3 +126,75 @@ fn factorial(n: f64) -> Result<f64, EvalError> {
         None => Err(EvalError::Overflow),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{
+        args::{AngleUnit, Args},
+        create_context,
+    };
+
+    const RADIAN_ARGS: Args = Args {
+        angle_unit: AngleUnit::Radian,
+        debug: false,
+        no_color: false,
+    };
+
+    #[test]
+    fn test_number() {
+        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let expr = Expr::Number(42.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 42.0);
+    }
+
+    #[test]
+    fn test_infix_op_add() {
+        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let expr = Expr::InfixOp {
+            op: InfixOp::Add,
+            lhs: Box::new(Expr::Number(1.0)),
+            rhs: Box::new(Expr::Number(2.0)),
+        };
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 3.0);
+    }
+
+    #[test]
+    fn test_prefix_op_neg() {
+        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let expr = Expr::PrefixOp {
+            op: PrefixOp::Neg,
+            arg: Box::new(Expr::Number(5.0)),
+        };
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), -5.0);
+    }
+
+    #[test]
+    fn test_postfix_op_fac() {
+        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let expr = Expr::PostfixOp {
+            op: PostfixOp::Fac,
+            arg: Box::new(Expr::Number(5.0)),
+        };
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 120.0);
+    }
+
+    #[test]
+    fn test_fn_call() {
+        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let expr = Expr::FnCall {
+            name: "mock_fn".to_string(),
+            args: vec![Expr::Number(2.0), Expr::Number(3.0)],
+        };
+        fcontext.set_function(
+            "mock_fn",
+            vec!["x".into(), "y".into()],
+            Expr::InfixOp {
+                op: InfixOp::Add,
+                lhs: Expr::Variable("x".into()).into(),
+                rhs: Expr::Variable("y".into()).into(),
+            },
+        );
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 5.0);
+    }
+}

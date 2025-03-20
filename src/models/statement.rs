@@ -52,3 +52,53 @@ impl Stmt {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::super::Expr;
+    use super::*;
+    use crate::{
+        args::{AngleUnit, Args},
+        create_context,
+    };
+
+    const RADIAN_ARGS: Args = Args {
+        angle_unit: AngleUnit::Radian,
+        debug: false,
+        no_color: false,
+    };
+
+    #[test]
+    fn test_def_var_eval() {
+        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let stmt = Stmt::DefVar {
+            name: "x".to_string(),
+            expr: Expr::Number(42.0),
+        };
+        assert_eq!(stmt.eval(&mut fcontext, vcontext.clone()).unwrap(), 42.0);
+        assert_eq!(vcontext.borrow().get_variable("x").unwrap().get(), 42.0);
+    }
+
+    #[test]
+    fn test_def_fun_eval() {
+        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let stmt = Stmt::DefFun {
+            name: "add".to_string(),
+            args: vec!["a".to_string(), "b".to_string()],
+            body: Expr::InfixOp {
+                op: crate::models::operators::InfixOp::Add,
+                lhs: Box::new(Expr::Variable("a".to_string())),
+                rhs: Box::new(Expr::Variable("b".to_string())),
+            },
+        };
+        assert!(stmt.eval(&mut fcontext, vcontext).is_ok());
+        assert!(fcontext.get_function("add").is_some());
+    }
+
+    #[test]
+    fn test_expr_eval() {
+        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let stmt = Stmt::Expr(Expr::Number(42.0));
+        assert_eq!(stmt.eval(&mut fcontext, vcontext).unwrap(), 42.0);
+    }
+}
