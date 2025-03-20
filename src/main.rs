@@ -4,15 +4,13 @@ use chumsky::{
 };
 use clap::Parser as ClapParser;
 use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use seva::{
-    SevaError, args::Args, context::Context, eval, lex, parser, readline::SevaEditor, report_error,
-};
+use seva::{args::Args, create_context, lex, parser, readline::SevaEditor, report_error};
 
-fn main() -> Result<(), SevaError> {
+fn main() {
     let args = Args::parse();
     let debug = args.debug;
 
-    let mut context = Context::new(&args);
+    let mut context = create_context(&args);
 
     let mut editor = SevaEditor::new(&args);
 
@@ -24,7 +22,7 @@ fn main() -> Result<(), SevaError> {
     let config = codespan_reporting::term::Config::default();
 
     loop {
-        let input = editor.readline()?;
+        let input = editor.readline();
 
         if input == "exit" {
             break;
@@ -38,11 +36,11 @@ fn main() -> Result<(), SevaError> {
             });
 
         match parser().parse(token_stream).into_result() {
-            Ok(expr) => {
+            Ok(stmt) => {
                 if debug {
-                    println!("{}", expr)
+                    println!("{}", stmt)
                 };
-                match eval(expr, &mut context) {
+                match stmt.eval(&mut context) {
                     Ok(out) => println!("{}", out),
                     Err(err) => println!("{}", err),
                 }
@@ -50,6 +48,4 @@ fn main() -> Result<(), SevaError> {
             Err(errs) => report_error(errs, &input, &writer, &config),
         }
     }
-
-    Ok(())
 }

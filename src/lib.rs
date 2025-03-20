@@ -1,15 +1,12 @@
 pub mod args;
-pub mod context;
+mod default_context;
 mod error_report;
-mod errors;
-mod eval;
 mod lexer;
+pub mod models;
 mod parser;
 pub mod readline;
-pub mod types;
 
+pub use default_context::create_context;
 pub use error_report::{create_writer, report_error};
-pub use errors::SevaError;
-pub use eval::eval;
 pub use lexer::lex;
 pub use parser::parser;
