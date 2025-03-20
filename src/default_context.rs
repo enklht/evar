@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
     args::Args,
-    models::{Context, Function, Variable},
+    models::{Function, FunctionContext, Variable, VariableContext},
 };
 
 macro_rules! unary_fn {
@@ -47,7 +47,7 @@ macro_rules! binary_fn {
     };
 }
 
-pub fn create_context(args: &Args) -> Context {
+pub fn create_context(args: &Args) -> (FunctionContext, Rc<RefCell<VariableContext>>) {
     use crate::args::AngleUnit;
 
     let mut functions = HashMap::from(match args.angle_unit {
@@ -107,5 +107,8 @@ pub fn create_context(args: &Args) -> Context {
     ]
     .into();
 
-    Context::new(functions, variables)
+    (
+        FunctionContext::new(functions),
+        Rc::new(RefCell::new(VariableContext::new(variables))),
+    )
 }

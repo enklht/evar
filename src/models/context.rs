@@ -1,21 +1,14 @@
 use super::{Function, Variable};
 use crate::models::Expr;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-pub struct Context {
+pub struct FunctionContext {
     functions: HashMap<String, Function>,
-    variables: HashMap<String, Variable>,
 }
 
-impl Context {
-    pub fn new(
-        functions: HashMap<String, Function>,
-        variables: HashMap<String, Variable>,
-    ) -> Context {
-        Context {
-            functions,
-            variables,
-        }
+impl FunctionContext {
+    pub fn new(functions: HashMap<String, Function>) -> FunctionContext {
+        FunctionContext { functions }
     }
 
     pub fn get_function(&self, name: &str) -> Option<&Function> {
@@ -27,14 +20,34 @@ impl Context {
             name.to_string(),
             Function::Internal {
                 arity: args.len(),
-                args,
+                arg_names: args,
                 body,
             },
         );
     }
+}
 
-    pub fn get_variable(&self, name: &str) -> Option<&Variable> {
-        self.variables.get(name)
+pub struct VariableContext {
+    parent: Option<Rc<RefCell<VariableContext>>>,
+    variables: HashMap<String, Variable>,
+}
+
+impl VariableContext {
+    pub fn new(variables: HashMap<String, Variable>) -> VariableContext {
+        VariableContext {
+            parent: None,
+            variables,
+        }
+    }
+
+    pub fn get_variable(&self, name: &str) -> Option<Variable> {
+        if let Some(val) = self.variables.get(name) {
+            Some(val.clone())
+        } else if let Some(parent) = &self.parent {
+            parent.borrow().get_variable(name)
+        } else {
+            None
+        }
     }
 
     pub fn set_variable(&mut self, name: &str, n: f64) -> Option<f64> {
@@ -53,5 +66,12 @@ impl Context {
             }
         }
         Some(n)
+    }
+
+    pub fn extend(parent: Rc<RefCell<VariableContext>>) -> VariableContext {
+        VariableContext {
+            parent: Some(parent),
+            variables: HashMap::new(),
+        }
     }
 }

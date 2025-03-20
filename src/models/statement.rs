@@ -1,6 +1,9 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use super::EvalError;
 
-use super::{Context, Expr};
+use super::{Expr, FunctionContext, VariableContext};
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
@@ -27,20 +30,25 @@ impl std::fmt::Display for Stmt {
 }
 
 impl Stmt {
-    pub fn eval(self, context: &mut Context) -> Result<f64, EvalError> {
+    pub fn eval(
+        self,
+        fcontext: &mut FunctionContext,
+        vcontext: Rc<RefCell<VariableContext>>,
+    ) -> Result<f64, EvalError> {
         match self {
             Stmt::DefVar { name, expr } => {
-                let val = expr.eval(context)?;
-                let variable = context
+                let val = expr.eval(fcontext, vcontext.clone())?;
+                let variable = vcontext
+                    .borrow_mut()
                     .set_variable(&name, val)
                     .ok_or(EvalError::InvalidVariableDefinition(name))?;
                 Ok(variable)
             }
             Stmt::DefFun { name, args, body } => {
-                context.set_function(&name, args, body);
+                fcontext.set_function(&name, args, body);
                 Ok(f64::NAN)
             }
-            Stmt::Expr(expr) => expr.eval(context),
+            Stmt::Expr(expr) => expr.eval(fcontext, vcontext),
         }
     }
 }

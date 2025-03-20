@@ -1,4 +1,6 @@
-use super::{Context, EvalError, Expr};
+use std::{cell::RefCell, rc::Rc};
+
+use super::{EvalError, Expr, FunctionContext, VariableContext};
 
 pub enum Function {
     External {
@@ -7,13 +9,18 @@ pub enum Function {
     },
     Internal {
         arity: usize,
-        args: Vec<String>,
+        arg_names: Vec<String>,
         body: Expr,
     },
 }
 
 impl Function {
-    pub fn call(&self, args: Vec<f64>, context: &Context) -> Result<f64, EvalError> {
+    pub fn call(
+        &self,
+        args: Vec<f64>,
+        fcontext: &FunctionContext,
+        vcontext: Rc<RefCell<VariableContext>>,
+    ) -> Result<f64, EvalError> {
         match self {
             Function::External { arity, body } => {
                 if args.len() == *arity {
@@ -25,9 +32,18 @@ impl Function {
                     })
                 }
             }
-            Function::Internal { arity, args, body } => {
+            Function::Internal {
+                arity,
+                arg_names,
+                body,
+            } => {
                 if args.len() == *arity {
-                    body.eval(context)
+                    let mut vcontext = super::context::VariableContext::extend(vcontext);
+
+                    for (arg_name, arg) in Iterator::zip(arg_names.iter(), args.iter()) {
+                        vcontext.set_variable(arg_name, *arg);
+                    }
+                    body.eval(fcontext, Rc::new(RefCell::new(vcontext)))
                 } else {
                     Err(EvalError::InvalidNumberOfArguments {
                         expected: *arity,
