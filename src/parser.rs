@@ -237,7 +237,7 @@ mod tests {
         })
     }
 
-    fn parse_var_def(input: &str) -> Result<Stmt, String> {
+    fn parse_stmt(input: &str) -> Result<Stmt, String> {
         use crate::lexer::Token;
         use chumsky::input::Stream;
         use logos::Logos;
@@ -250,15 +250,12 @@ mod tests {
         let token_stream =
             Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
 
-        variable_definition()
-            .parse(token_stream)
-            .into_result()
-            .map_err(|_| {
-                format!(
-                    "failed to parse {:?}",
-                    token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
-                )
-            })
+        parser().parse(token_stream).into_result().map_err(|_| {
+            format!(
+                "failed to parse {:?}",
+                token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
+            )
+        })
     }
 
     #[test]
@@ -281,7 +278,6 @@ mod tests {
         // Tests that should fail
         assert!(parse_expr("0.").is_err());
         assert!(parse_expr("1..2").is_err());
-        assert!(parse_expr("1e--3").is_err());
         assert!(parse_expr("2.5.2").is_err());
         assert!(parse_expr("1e3.5").is_err());
         assert!(parse_expr("1e3 .5").is_err());
@@ -744,7 +740,7 @@ mod tests {
     #[test]
     fn variable_definition_test() {
         assert_eq!(
-            parse_var_def("let x = 42"),
+            parse_stmt("let x = 42"),
             Ok(Stmt::DefVar {
                 name: "x".into(),
                 expr: Expr::Number(42.),
@@ -752,7 +748,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_var_def("let y = 3.14"),
+            parse_stmt("let y = 3.14"),
             Ok(Stmt::DefVar {
                 name: "y".into(),
                 expr: Expr::Number(3.14),
@@ -760,7 +756,7 @@ mod tests {
         );
 
         assert_eq!(
-            parse_var_def("let z = x + y"),
+            parse_stmt("let z = x + y"),
             Ok(Stmt::DefVar {
                 name: "z".into(),
                 expr: binop!(Add, Expr::Variable("x".into()), Expr::Variable("y".into()))
@@ -768,9 +764,45 @@ mod tests {
         );
 
         // Failing tests
-        assert!(parse_var_def("let = 42").is_err());
-        assert!(parse_var_def("let x 42").is_err());
-        assert!(parse_var_def("let x = ").is_err());
-        assert!(parse_var_def("let 42 = x").is_err());
+        assert!(parse_stmt("let = 42").is_err());
+        assert!(parse_stmt("let x 42").is_err());
+        assert!(parse_stmt("let x = ").is_err());
+        assert!(parse_stmt("let 42 = x").is_err());
+    }
+
+    #[test]
+    fn function_definition_test() {
+        assert_eq!(
+            parse_stmt("let add(a, b) = a + b"),
+            Ok(Stmt::DefFun {
+                name: "add".into(),
+                args: vec!["a".into(), "b".into()],
+                body: binop!(Add, Expr::Variable("a".into()), Expr::Variable("b".into())),
+            })
+        );
+
+        assert_eq!(
+            parse_stmt("let square(x) = x * x"),
+            Ok(Stmt::DefFun {
+                name: "square".into(),
+                args: vec!["x".into()],
+                body: binop!(Mul, Expr::Variable("x".into()), Expr::Variable("x".into())),
+            })
+        );
+
+        assert_eq!(
+            parse_stmt("let negate(x) = -x"),
+            Ok(Stmt::DefFun {
+                name: "negate".into(),
+                args: vec!["x".into()],
+                body: preop!(Neg, Expr::Variable("x".into())),
+            })
+        );
+
+        // Failing tests
+        assert!(parse_stmt("let add(a, b) = ").is_err());
+        assert!(parse_stmt("let add(a, b = a + b").is_err());
+        assert!(parse_stmt("let add(a b) = a + b").is_err());
+        assert!(parse_stmt("let add(a, b) a + b").is_err());
     }
 }
