@@ -38,10 +38,10 @@ impl Function {
                 body,
             } => {
                 if args.len() == *arity {
-                    let mut vcontext = super::context::VariableContext::extend(vcontext);
+                    let mut vcontext = VariableContext::extend(vcontext);
 
-                    for (arg_name, arg) in Iterator::zip(arg_names.iter(), args.iter()) {
-                        vcontext.set_variable(arg_name, *arg);
+                    for (arg_name, arg) in arg_names.iter().zip(args.into_iter()) {
+                        vcontext.set_variable(arg_name, arg);
                     }
                     body.eval(fcontext, Rc::new(RefCell::new(vcontext)))
                 } else {

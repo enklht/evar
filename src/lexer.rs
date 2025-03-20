@@ -36,6 +36,8 @@ pub enum Token<'a> {
     RParen,
     #[token(",")]
     Comma,
+    #[token("_")]
+    Underscore,
 
     #[regex(r"[[:alpha:]][[:alnum:]]*")]
     Ident(&'a str),
@@ -60,6 +62,7 @@ impl std::fmt::Display for Token<'_> {
             Self::Ident(s) => write!(f, "{}", s),
             Self::Let => write!(f, "let"),
             Self::Equal => write!(f, "="),
+            Self::Underscore => write!(f, "_"),
         }
     }
 }
