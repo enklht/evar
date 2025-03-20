@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{args::Args, errors::SevaError, lexer::Token};
+use crate::{args::Args, lexer::Token};
 use colored::Colorize;
 use logos::Logos;
 use rustyline::{
@@ -102,7 +102,7 @@ impl SevaEditor {
         SevaEditor(editor)
     }
 
-    pub fn readline(&mut self) -> Result<String, SevaError> {
-        self.0.readline("> ").map_err(SevaError::ReadlineError)
+    pub fn readline(&mut self) -> String {
+        self.0.readline("> ").expect("failed to read line")
     }
 }
