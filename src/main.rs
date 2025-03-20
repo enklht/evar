@@ -10,7 +10,6 @@ fn main() {
     let debug = args.debug;
 
     let (mut fcontext, vcontext) = create_context(&args);
-    let vcontext = std::rc::Rc::new(std::cell::RefCell::new(vcontext));
     let mut editor = SevaEditor::new(&args);
     let mut reporter = ErrorReporter::new(args.no_color);
 
