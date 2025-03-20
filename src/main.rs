@@ -9,7 +9,8 @@ fn main() {
     let args = Args::parse();
     let debug = args.debug;
 
-    let mut context = create_context(&args);
+    let (mut fcontext, mut vcontext) = create_context(&args);
+    let mut vcontext = std::rc::Rc::new(std::cell::RefCell::new(vcontext));
     let mut editor = SevaEditor::new(&args);
     let mut reporter = ErrorReporter::new(args.no_color);
 
@@ -32,7 +33,7 @@ fn main() {
                 if debug {
                     println!("{}", stmt)
                 };
-                match stmt.eval(&mut context) {
+                match stmt.eval(&mut fcontext, vcontext.clone()) {
                     Ok(out) => println!("{}", out),
                     Err(err) => eprintln!("{}", err),
                 }

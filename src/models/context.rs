@@ -1,21 +1,14 @@
 use super::{Function, Variable};
 use crate::models::Expr;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-pub struct Context {
+pub struct FunctionContext {
     functions: HashMap<String, Function>,
-    variables: HashMap<String, Variable>,
 }
 
-impl Context {
-    pub fn new(
-        functions: HashMap<String, Function>,
-        variables: HashMap<String, Variable>,
-    ) -> Context {
-        Context {
-            functions,
-            variables,
-        }
+impl FunctionContext {
+    pub fn new(functions: HashMap<String, Function>) -> FunctionContext {
+        FunctionContext { functions }
     }
 
     pub fn get_function(&self, name: &str) -> Option<&Function> {
@@ -27,10 +20,24 @@ impl Context {
             name.to_string(),
             Function::Internal {
                 arity: args.len(),
-                args,
+                arg_names: args,
                 body,
             },
         );
+    }
+}
+
+pub struct VariableContext {
+    parent: Option<Rc<RefCell<VariableContext>>>,
+    variables: HashMap<String, Variable>,
+}
+
+impl VariableContext {
+    pub fn new(variables: HashMap<String, Variable>) -> VariableContext {
+        VariableContext {
+            parent: None,
+            variables,
+        }
     }
 
     pub fn get_variable(&self, name: &str) -> Option<&Variable> {
@@ -53,5 +60,12 @@ impl Context {
             }
         }
         Some(n)
+    }
+
+    pub fn extend(parent: Rc<RefCell<VariableContext>>) -> VariableContext {
+        VariableContext {
+            parent: Some(parent),
+            variables: HashMap::new(),
+        }
     }
 }

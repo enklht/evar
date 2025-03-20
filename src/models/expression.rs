@@ -1,5 +1,8 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use super::EvalError;
-use super::{Context, operators::*};
+use super::{FunctionContext, VariableContext, operators::*};
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
@@ -45,49 +48,67 @@ impl std::fmt::Display for Expr {
 }
 
 impl Expr {
-    pub fn eval(&self, context: &Context) -> Result<f64, EvalError> {
+    pub fn eval(
+        &self,
+        fcontext: &FunctionContext,
+        vcontext: Rc<RefCell<VariableContext>>,
+    ) -> Result<f64, EvalError> {
         match self {
             Expr::Number(f) => Ok(*f),
             Expr::InfixOp { op, lhs, rhs } => {
                 use InfixOp::*;
                 match op {
-                    Add => Ok(lhs.eval(context)? + rhs.eval(context)?),
-                    Sub => Ok(lhs.eval(context)? - rhs.eval(context)?),
-                    Mul => Ok(lhs.eval(context)? * rhs.eval(context)?),
-                    Div => Ok(lhs.eval(context)? / rhs.eval(context)?),
-                    Rem => Ok(lhs.eval(context)?.rem_euclid(rhs.eval(context)?)),
-                    Pow => Ok(lhs.eval(context)?.powf(rhs.eval(context)?)),
+                    Add => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? + rhs.eval(fcontext, vcontext)?)
+                    }
+                    Sub => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? - rhs.eval(fcontext, vcontext)?)
+                    }
+                    Mul => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? * rhs.eval(fcontext, vcontext)?)
+                    }
+                    Div => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? / rhs.eval(fcontext, vcontext)?)
+                    }
+                    Rem => Ok(lhs
+                        .eval(fcontext, vcontext.clone())?
+                        .rem_euclid(rhs.eval(fcontext, vcontext)?)),
+                    Pow => Ok(lhs
+                        .eval(fcontext, vcontext.clone())?
+                        .powf(rhs.eval(fcontext, vcontext)?)),
                 }
             }
             Expr::PrefixOp { op, arg } => {
                 use PrefixOp::*;
                 match op {
-                    Neg => Ok(-arg.eval(context)?),
+                    Neg => Ok(-arg.eval(fcontext, vcontext)?),
                 }
             }
             Expr::PostfixOp { op, arg } => {
                 use PostfixOp::*;
                 match op {
-                    Fac => factorial(arg.eval(context)?),
+                    Fac => factorial(arg.eval(fcontext, vcontext)?),
                 }
             }
             Expr::FnCall { name: fname, args } => {
                 let mut evaluated_args = Vec::new();
                 for arg in args {
-                    evaluated_args.push(arg.eval(context)?);
+                    evaluated_args.push(arg.eval(fcontext, vcontext.clone())?);
                 }
 
-                let function = context
+                let function = fcontext
                     .get_function(&fname)
                     .ok_or(EvalError::FunctionNotFound(fname.to_string()))?;
 
-                function.call(evaluated_args, context)
+                function.call(evaluated_args, fcontext, vcontext)
             }
             Expr::Variable(name) => {
-                let variable = context
+                let variable = vcontext
+                    .borrow()
                     .get_variable(&name)
-                    .ok_or(EvalError::VariableNotFound(name.to_string()))?;
-                Ok(variable.get())
+                    .ok_or(EvalError::VariableNotFound(name.to_string()))?
+                    .get();
+                Ok(variable)
             }
         }
     }
