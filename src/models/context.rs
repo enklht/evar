@@ -22,7 +22,7 @@ impl Context {
         self.functions.get(name)
     }
 
-    pub fn set_function(&mut self, name: &str, args: Vec<String>, body: Expr) -> Option<()> {
+    pub fn set_function(&mut self, name: &str, args: Vec<String>, body: Expr) {
         self.functions.insert(
             name.to_string(),
             Function::Internal {
@@ -31,7 +31,6 @@ impl Context {
                 body,
             },
         );
-        Some(())
     }
 
     pub fn get_variable(&self, name: &str) -> Option<&Variable> {
