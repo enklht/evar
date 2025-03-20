@@ -24,7 +24,7 @@ fn main() {
     loop {
         let input = editor.readline();
 
-        if input == "exit" {
+        if input == "exit" || input == "quit" {
             break;
         };
 
