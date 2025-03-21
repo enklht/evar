@@ -4,9 +4,8 @@ use crate::lexer::Token;
 use colored::Colorize;
 use logos::Logos;
 use rustyline::{
-    Completer, Config, Editor, Helper, Highlighter, Hinter, Validator,
-    completion::FilenameCompleter, highlight::Highlighter, hint::HistoryHinter,
-    history::FileHistory, validate::MatchingBracketValidator,
+    Completer, Config, Editor, Helper, Highlighter, Hinter, Validator, highlight::Highlighter,
+    hint::HistoryHinter, history::FileHistory, validate::MatchingBracketValidator,
 };
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
