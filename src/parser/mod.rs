@@ -68,12 +68,17 @@ where
 {
     let whitespace = just(Token::Space).or_not();
 
-    let number = select! {
+    let number = just(Token::Minus)
+        .ignore_then(select! {
+            Token::Int(n) => Expr::Int(-n),
+            Token::Float(n) => Expr::Float(-n)
+        })
+        .or(select! {
         Token::Int(n) => Expr::Int(n),
         Token::Float(n) => Expr::Float(n)
-    }
-    .labelled("number")
-    .boxed();
+        })
+        .labelled("number")
+        .boxed();
 
     recursive(|expr| {
         let fn_call = select! {

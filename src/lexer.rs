@@ -7,10 +7,10 @@ pub enum Token<'a> {
     #[regex(r"\s+")]
     Space,
 
-    #[regex(r"-?(0|[1-9]\d*)", |lex| lex.slice().parse::<i32>().unwrap())]
+    #[regex(r"\d*", |lex| lex.slice().parse::<i32>().unwrap())]
     Int(i32),
 
-    #[regex(r"-?(0|[1-9]\d*)((\.\d+([eE][+-]?\d+)?)|((\.\d+)?[eE][+-]?\d+))", |lex| lex.slice().parse::<f64>().unwrap())]
+    #[regex(r"(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
     Float(f64),
 
     #[token("let")]
