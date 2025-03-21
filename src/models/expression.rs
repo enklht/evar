@@ -120,19 +120,6 @@ impl Expr {
     }
 }
 
-fn factorial(n: f64) -> Result<f64, EvalError> {
-    let n = n.round();
-    if n < 0. {
-        return Err(EvalError::MathDomain);
-    }
-    let result = (1..=n as u128).try_fold(1_u128, |acc, x| acc.checked_mul(x));
-
-    match result {
-        Some(n) => Ok(n as f64),
-        None => Err(EvalError::Overflow),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
