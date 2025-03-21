@@ -32,7 +32,9 @@ impl Highlighter for SevaHighlighter {
                 match lex_result {
                     Err(_) => format!("{}", line[span].truecolor(237, 135, 150)),
                     Ok(token) => match token {
-                        Token::Number(_) => format!("{}", line[span].truecolor(245, 169, 127)),
+                        Token::Int(_) | Token::Float(_) => {
+                            format!("{}", line[span].truecolor(245, 169, 127))
+                        }
                         Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
                         Token::Plus
                         | Token::Minus

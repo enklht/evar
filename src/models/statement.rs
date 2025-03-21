@@ -83,7 +83,7 @@ mod tests {
         let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let stmt = Stmt::DefVar {
             name: "x".to_string(),
-            expr: Expr::Number(42.0),
+            expr: Expr::Float(42.0),
         };
         assert_eq!(
             stmt.eval(&mut fcontext, vcontext.clone()).unwrap(),
@@ -114,7 +114,7 @@ mod tests {
     #[test]
     fn test_expr_eval() {
         let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
-        let stmt = Stmt::Expr(Expr::Number(42.0));
+        let stmt = Stmt::Expr(Expr::Float(42.0));
         assert_eq!(
             stmt.eval(&mut fcontext, vcontext).unwrap(),
             Value::from(42.0)

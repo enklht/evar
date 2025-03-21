@@ -6,7 +6,8 @@ use super::{FunctionContext, VariableContext, operators::*};
 
 #[derive(Debug, PartialEq)]
 pub enum Expr {
-    Number(f64),
+    Int(i32),
+    Float(f64),
     Variable(String),
     FnCall {
         name: String,
@@ -31,7 +32,8 @@ pub enum Expr {
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::Number(n) => write!(f, "{}", n),
+            Expr::Int(n) => write!(f, "{}", n),
+            Expr::Float(n) => write!(f, "{}", n),
             Expr::Variable(n) => write!(f, "{}", n),
             Expr::FnCall { name, args } => {
                 let args_str = args
@@ -56,7 +58,8 @@ impl Expr {
         vcontext: Rc<RefCell<VariableContext>>,
     ) -> Result<Value, EvalError> {
         match self {
-            Expr::Number(f) => Ok(Value::from(*f)),
+            Expr::Int(f) => Ok(Value::from(*f)),
+            Expr::Float(f) => Ok(Value::from(*f)),
             Expr::InfixOp { op, lhs, rhs } => {
                 use InfixOp::*;
                 match op {
@@ -147,7 +150,7 @@ mod tests {
     #[test]
     fn test_number() {
         let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
-        let expr = Expr::Number(42.0);
+        let expr = Expr::Float(42.0);
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(42.0));
     }
 
@@ -156,8 +159,8 @@ mod tests {
         let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let expr = Expr::InfixOp {
             op: InfixOp::Add,
-            lhs: Box::new(Expr::Number(1.0)),
-            rhs: Box::new(Expr::Number(2.0)),
+            lhs: Box::new(Expr::Float(1.0)),
+            rhs: Box::new(Expr::Float(2.0)),
         };
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(3.0));
     }
@@ -167,7 +170,7 @@ mod tests {
         let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let expr = Expr::PrefixOp {
             op: PrefixOp::Neg,
-            arg: Box::new(Expr::Number(5.0)),
+            arg: Box::new(Expr::Float(5.0)),
         };
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(-5.0));
     }
@@ -177,7 +180,7 @@ mod tests {
         let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let expr = Expr::PostfixOp {
             op: PostfixOp::Fac,
-            arg: Box::new(Expr::Number(5.0)),
+            arg: Box::new(Expr::Float(5.0)),
         };
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(120.0));
     }
@@ -187,7 +190,7 @@ mod tests {
         let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let expr = Expr::FnCall {
             name: "mock_fn".to_string(),
-            args: vec![Expr::Number(2.0), Expr::Number(3.0)],
+            args: vec![Expr::Float(2.0), Expr::Float(3.0)],
         };
         fcontext.set_function(
             "mock_fn",
