@@ -121,27 +121,18 @@ impl Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        args::{AngleUnit, Args},
-        create_context,
-    };
-
-    const RADIAN_ARGS: Args = Args {
-        angle_unit: AngleUnit::Radian,
-        debug: false,
-        no_color: false,
-    };
+    use crate::{args::AngleUnit::*, create_context};
 
     #[test]
     fn test_number() {
-        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (fcontext, vcontext) = create_context(&Radian);
         let expr = Expr::Float(42.0);
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(42.0));
     }
 
     #[test]
     fn test_infix_op_add() {
-        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (fcontext, vcontext) = create_context(&Radian);
         let expr = Expr::InfixOp {
             op: InfixOp::Add,
             lhs: Box::new(Expr::Float(1.0)),
@@ -152,7 +143,7 @@ mod tests {
 
     #[test]
     fn test_prefix_op_neg() {
-        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (fcontext, vcontext) = create_context(&Radian);
         let expr = Expr::PrefixOp {
             op: PrefixOp::Neg,
             arg: Box::new(Expr::Float(5.0)),
@@ -162,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_postfix_op_fac() {
-        let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (fcontext, vcontext) = create_context(&Radian);
         let expr = Expr::PostfixOp {
             op: PostfixOp::Fac,
             arg: Box::new(Expr::Float(5.0)),
@@ -172,7 +163,7 @@ mod tests {
 
     #[test]
     fn test_fn_call() {
-        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (mut fcontext, vcontext) = create_context(&Radian);
         let expr = Expr::FnCall {
             name: "mock_fn".to_string(),
             args: vec![Expr::Float(2.0), Expr::Float(3.0)],

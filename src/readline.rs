@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::{args::Args, lexer::Token};
+use crate::lexer::Token;
 use colored::Colorize;
 use logos::Logos;
 use rustyline::{
@@ -80,8 +80,8 @@ impl Highlighter for SevaHighlighter {
 pub struct SevaEditor(Editor<RustyLineHelper, FileHistory>);
 
 impl SevaEditor {
-    pub fn new(args: &Args) -> SevaEditor {
-        if args.no_color {
+    pub fn new(no_color: bool) -> SevaEditor {
+        if no_color {
             colored::control::set_override(false);
         }
 
