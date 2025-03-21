@@ -67,20 +67,11 @@ impl Stmt {
 mod tests {
     use super::super::Expr;
     use super::*;
-    use crate::{
-        args::{AngleUnit, Args},
-        create_context,
-    };
-
-    const RADIAN_ARGS: Args = Args {
-        angle_unit: AngleUnit::Radian,
-        debug: false,
-        no_color: false,
-    };
+    use crate::{args::AngleUnit::*, create_context};
 
     #[test]
     fn test_def_var_eval() {
-        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (mut fcontext, vcontext) = create_context(&Radian);
         let stmt = Stmt::DefVar {
             name: "x".to_string(),
             expr: Expr::Float(42.0),
@@ -97,7 +88,7 @@ mod tests {
 
     #[test]
     fn test_def_fun_eval() {
-        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (mut fcontext, vcontext) = create_context(&Radian);
         let stmt = Stmt::DefFun {
             name: "add".to_string(),
             arg_names: vec!["a".to_string(), "b".to_string()],
@@ -113,7 +104,7 @@ mod tests {
 
     #[test]
     fn test_expr_eval() {
-        let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
+        let (mut fcontext, vcontext) = create_context(&Radian);
         let stmt = Stmt::Expr(Expr::Float(42.0));
         assert_eq!(
             stmt.eval(&mut fcontext, vcontext).unwrap(),

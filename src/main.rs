@@ -6,12 +6,15 @@ use clap::Parser as ClapParser;
 use seva::{ErrorReporter, args::Args, create_context, lex, parser, readline::SevaEditor};
 
 fn main() {
-    let args = Args::parse();
-    let debug = args.debug;
+    let Args {
+        debug,
+        no_color,
+        angle_unit,
+    } = Args::parse();
 
-    let (mut fcontext, vcontext) = create_context(&args);
-    let mut editor = SevaEditor::new(&args);
-    let mut reporter = ErrorReporter::new(args.no_color);
+    let (mut fcontext, vcontext) = create_context(&angle_unit);
+    let mut editor = SevaEditor::new(no_color);
+    let mut reporter = ErrorReporter::new(no_color);
 
     loop {
         let input = editor.readline();
