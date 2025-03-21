@@ -22,9 +22,9 @@ impl ValueInner {
     pub fn type_name(&self) -> String {
         use ValueInner::*;
         match self {
-            Null => "Null".into(),
-            Int(_) => "Integer".into(),
-            Float(_) => "Float".into(),
+            Null => String::from("Null"),
+            Int(_) => String::from("Integer"),
+            Float(_) => String::from("Float"),
         }
     }
 }
@@ -156,7 +156,7 @@ impl Value {
                 }
             }
             v => Err(EvalError::TypeError {
-                expected: "Integer".into(),
+                expected: String::from("Integer"),
                 found: v.type_name(),
             }),
         }

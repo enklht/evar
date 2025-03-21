@@ -40,7 +40,7 @@ impl std::fmt::Display for Expr {
                     .iter()
                     .map(|x| x.to_string())
                     .reduce(|acc, x| acc + ", " + &x)
-                    .unwrap_or_else(|| "".into());
+                    .unwrap_or_else(|| String::from(""));
                 write!(f, "{}({})", name, args_str)
             }
             Expr::PrefixOp { op, arg } => write!(f, "({}{})", op, arg),
@@ -170,11 +170,11 @@ mod tests {
         };
         fcontext.set_function(
             "mock_fn",
-            vec!["x".into(), "y".into()],
+            vec![String::from("x".into(), "y")],
             Expr::InfixOp {
                 op: InfixOp::Add,
-                lhs: Expr::Variable("x".into()).into(),
-                rhs: Expr::Variable("y".into()).into(),
+                lhs: Expr::Variable(String::from("x")).into(),
+                rhs: Expr::Variable(String::from("y")).into(),
             },
         );
         assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(5.0));

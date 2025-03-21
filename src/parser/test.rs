@@ -257,7 +257,7 @@ fn function_calls() {
     assert_eq!(
         parse_expr("sin(0)"),
         Ok(Expr::FnCall {
-            name: "sin".into(),
+            name: String::from("sin"),
             args: vec![Float(0.)],
         })
     );
@@ -265,7 +265,7 @@ fn function_calls() {
     assert_eq!(
         parse_expr("sin(3)"),
         Ok(Expr::FnCall {
-            name: "sin".into(),
+            name: String::from("sin"),
             args: vec![Float(3.)],
         })
     );
@@ -274,21 +274,21 @@ fn function_calls() {
     assert_eq!(
         parse_expr("log(1, 10)"),
         Ok(Expr::FnCall {
-            name: "log".into(),
+            name: String::from("log"),
             args: vec![Float(1.), Float(10.)],
         })
     );
     assert_eq!(
         parse_expr("log(2.5, 10)"),
         Ok(Expr::FnCall {
-            name: "log".into(),
+            name: String::from("log"),
             args: vec![Float(2.5), Float(10.)],
         })
     );
     assert_eq!(
         parse_expr("log(2.5, 2.5)"),
         Ok(Expr::FnCall {
-            name: "log".into(),
+            name: String::from("log"),
             args: vec![Float(2.5), Float(2.5)],
         })
     );
@@ -315,7 +315,7 @@ fn mathematical_notations() {
             Mul,
             Float(2.),
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![Float(3.)],
             }
         ))
@@ -330,7 +330,7 @@ fn mathematical_notations() {
             Mul,
             binop!(Mul, Float(3.), binop!(Add, Float(4.), Float(5.))),
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![Float(6.)],
             }
         ))
@@ -349,7 +349,7 @@ fn mathematical_notations() {
             Mul,
             Float(2.),
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![binop!(Add, Float(3.), Float(4.))],
             }
         ))
@@ -363,7 +363,7 @@ fn mathematical_notations() {
                 Add,
                 Float(3.),
                 Expr::FnCall {
-                    name: "sin".into(),
+                    name: String::from("sin"),
                     args: vec![Float(4.)],
                 }
             )
@@ -398,7 +398,7 @@ fn mixed_operations_and_number_notations() {
         Ok(binop!(
             Mul,
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![binop!(Add, Float(2.), Float(3.))],
             },
             Float(4.)
@@ -410,7 +410,7 @@ fn mixed_operations_and_number_notations() {
             Mul,
             Float(2.),
             Expr::FnCall {
-                name: "log".into(),
+                name: String::from("log"),
                 args: vec![binop!(Add, Float(3.), Float(4.)), Float(10.)],
             }
         ))
@@ -424,12 +424,12 @@ fn mixed_operations_and_number_notations() {
                 Mul,
                 Float(2.),
                 Expr::FnCall {
-                    name: "sin".into(),
+                    name: String::from("sin"),
                     args: vec![binop!(Add, Float(3.), Float(4.))],
                 }
             ),
             Expr::FnCall {
-                name: "log".into(),
+                name: String::from("log"),
                 args: vec![Float(5.), Float(6.)],
             }
         ))
@@ -443,7 +443,7 @@ fn mixed_operations_and_number_notations() {
                 Add,
                 Float(3.),
                 Expr::FnCall {
-                    name: "sin".into(),
+                    name: String::from("sin"),
                     args: vec![Float(4.)],
                 }
             )
@@ -456,7 +456,7 @@ fn mixed_operations_and_number_notations() {
         Ok(binop!(
             Add,
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![Float(1e3)],
             },
             Float(2.5)
@@ -467,7 +467,7 @@ fn mixed_operations_and_number_notations() {
         Ok(binop!(
             Mul,
             Expr::FnCall {
-                name: "log".into(),
+                name: String::from("log"),
                 args: vec![Float(1e-3), Float(2.5)],
             },
             Float(10.)
@@ -481,12 +481,12 @@ fn mixed_operations_and_number_notations() {
                 Mul,
                 Float(2.),
                 Expr::FnCall {
-                    name: "sin".into(),
+                    name: String::from("sin"),
                     args: vec![Float(2.5e2)],
                 }
             ),
             Expr::FnCall {
-                name: "log".into(),
+                name: String::from("log"),
                 args: vec![Float(1.), Float(1e3)],
             }
         ))
@@ -497,7 +497,7 @@ fn mixed_operations_and_number_notations() {
             Add,
             binop!(Mul, Float(2.), Float(3.)),
             Expr::FnCall {
-                name: "sin".into(),
+                name: String::from("sin"),
                 args: vec![Float(4.)],
             }
         ))
@@ -509,7 +509,7 @@ fn mixed_operations_and_number_notations() {
             binop!(
                 Mul,
                 Expr::FnCall {
-                    name: "sin".into(),
+                    name: String::from("sin"),
                     args: vec![Float(4.)],
                 },
                 Float(2.)
@@ -544,7 +544,7 @@ fn variable_definition_test() {
     assert_eq!(
         parse_stmt("let x = 42"),
         Ok(Stmt::DefVar {
-            name: "x".into(),
+            name: String::from("x"),
             expr: Expr::Float(42.),
         })
     );
@@ -552,7 +552,7 @@ fn variable_definition_test() {
     assert_eq!(
         parse_stmt("let y = 3.15"),
         Ok(Stmt::DefVar {
-            name: "y".into(),
+            name: String::from("y"),
             expr: Expr::Float(3.15),
         })
     );
@@ -560,8 +560,11 @@ fn variable_definition_test() {
     assert_eq!(
         parse_stmt("let z = x + y"),
         Ok(Stmt::DefVar {
-            name: "z".into(),
-            expr: binop!(Add, Expr::Variable("x".into()), Expr::Variable("y".into()))
+            name: String::from("z"),
+            expr: binop!(
+                Add,
+                Expr::Variable(String::from("x".into()), Expr::Variable("y"))
+            )
         })
     );
 
@@ -577,27 +580,35 @@ fn function_definition_test() {
     assert_eq!(
         parse_stmt("let add(a, b) = a + b"),
         Ok(Stmt::DefFun {
-            name: "add".into(),
-            arg_names: vec!["a".into(), "b".into()],
-            body: binop!(Add, Expr::Variable("a".into()), Expr::Variable("b".into())),
+            name: String::from("add"),
+            arg_names: vec![String::from("a"), String::from("b")],
+            body: binop!(
+                Add,
+                Expr::Variable(String::from("a")),
+                Expr::Variable(String::from("b"))
+            ),
         })
     );
 
     assert_eq!(
         parse_stmt("let square(x) = x * x"),
         Ok(Stmt::DefFun {
-            name: "square".into(),
-            arg_names: vec!["x".into()],
-            body: binop!(Mul, Expr::Variable("x".into()), Expr::Variable("x".into())),
+            name: String::from("square"),
+            arg_names: vec![String::from("x")],
+            body: binop!(
+                Mul,
+                Expr::Variable(String::from("x")),
+                Expr::Variable(String::from("x"))
+            ),
         })
     );
 
     assert_eq!(
         parse_stmt("let negate(x) = -x"),
         Ok(Stmt::DefFun {
-            name: "negate".into(),
-            arg_names: vec!["x".into()],
-            body: preop!(Neg, Expr::Variable("x".into())),
+            name: String::from("negate"),
+            arg_names: vec![String::from("x")],
+            body: preop!(Neg, Expr::Variable(String::from("x"))),
         })
     );
 
