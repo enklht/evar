@@ -114,7 +114,7 @@ impl Div<Value> for Value {
 }
 
 impl Value {
-    pub fn rem_euclid(self, rhs: Value) -> Result<Value, EvalError> {
+    pub fn rem_euclid(self, rhs: Value, prec: ) -> Result<Value, EvalError> {
         use ValueInner::*;
         match (&*self.0, &*rhs.0) {
             (Integer(x), Integer(y)) => {
