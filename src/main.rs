@@ -13,7 +13,7 @@ fn main() {
         angle_unit,
     } = Args::parse();
 
-    let mut fcontext = create_context(&angle_unit);
+    let mut context = create_context(&angle_unit);
     let mut editor = SevaEditor::new(no_color);
     let mut reporter = ErrorReporter::new(no_color);
 
@@ -52,7 +52,7 @@ fn main() {
                 if debug {
                     println!("{}", stmt)
                 };
-                match stmt.eval(&mut fcontext) {
+                match stmt.eval(&mut context) {
                     Ok(out) => println!("{:?}", out),
                     Err(err) => eprintln!("{}", err),
                 }
