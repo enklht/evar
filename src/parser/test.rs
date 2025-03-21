@@ -1,6 +1,6 @@
 use super::*;
-use crate::models::Expr::*;
-use crate::models::{Expr, Stmt, operators};
+use crate::models::operators;
+use Expr::*;
 
 macro_rules! preop {
     ($op_name:ident, $val:expr) => {
@@ -588,7 +588,7 @@ fn function_definition_test() {
         parse_stmt("let add(a, b) = a + b"),
         Ok(Stmt::DefFun {
             name: "add".into(),
-            args: vec!["a".into(), "b".into()],
+            arg_names: vec!["a".into(), "b".into()],
             body: binop!(Add, Expr::Variable("a".into()), Expr::Variable("b".into())),
         })
     );
@@ -597,7 +597,7 @@ fn function_definition_test() {
         parse_stmt("let square(x) = x * x"),
         Ok(Stmt::DefFun {
             name: "square".into(),
-            args: vec!["x".into()],
+            arg_names: vec!["x".into()],
             body: binop!(Mul, Expr::Variable("x".into()), Expr::Variable("x".into())),
         })
     );
@@ -606,7 +606,7 @@ fn function_definition_test() {
         parse_stmt("let negate(x) = -x"),
         Ok(Stmt::DefFun {
             name: "negate".into(),
-            args: vec!["x".into()],
+            arg_names: vec!["x".into()],
             body: preop!(Neg, Expr::Variable("x".into())),
         })
     );

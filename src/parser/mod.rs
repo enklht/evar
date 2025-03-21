@@ -37,7 +37,11 @@ where
         .then_ignore(just(Token::RParen))
         .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
         .then(expression())
-        .map(|((name, args), body)| Stmt::DefFun { name, args, body })
+        .map(|((name, arg_names), body)| Stmt::DefFun {
+            name,
+            arg_names,
+            body,
+        })
         .labelled("function definition")
         .as_context()
 }
