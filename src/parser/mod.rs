@@ -114,6 +114,7 @@ where
         let prefixed = postfixed
             .clone()
             .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
+                .then_ignore(whitespace.clone())
                 .then(postfixed.clone())
                 .map(|(op, rhs)| Expr::PrefixOp {
                     op,
