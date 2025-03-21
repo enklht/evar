@@ -13,5 +13,6 @@
   colored = "3.0.0"
 directories = "6.0.0"
   logos = "0.15.0"
+rug = "1.27.0"
   rustyline = { version = "15.0.0", features = ["derive"] }
   thiserror = "2.0.12"
