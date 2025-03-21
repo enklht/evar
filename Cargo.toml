@@ -5,6 +5,7 @@
   description = "Simple math calculator inspired by eva"
 
 [dependencies]
+astro-float = "0.9.5"
   chumsky = { version = "1.0.0-alpha.8", default-features = false, features = [
     "std",
   ] }
