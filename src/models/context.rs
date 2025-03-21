@@ -3,12 +3,16 @@ use crate::models::Expr;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub struct FunctionContext {
+    previous_answer: Option<f64>,
     functions: HashMap<String, Function>,
 }
 
 impl FunctionContext {
     pub fn new(functions: HashMap<String, Function>) -> FunctionContext {
-        FunctionContext { functions }
+        FunctionContext {
+            previous_answer: None,
+            functions,
+        }
     }
 
     pub fn get_function(&self, name: &str) -> Option<&Function> {
@@ -24,6 +28,14 @@ impl FunctionContext {
                 body,
             },
         );
+    }
+
+    pub fn get_prev_answer(&self) -> Option<f64> {
+        self.previous_answer
+    }
+
+    pub fn set_prev_answer(&mut self, value: f64) {
+        self.previous_answer = Some(value);
     }
 }
 

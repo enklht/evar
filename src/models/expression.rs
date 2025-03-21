@@ -25,6 +25,7 @@ pub enum Expr {
         lhs: Box<Expr>,
         rhs: Box<Expr>,
     },
+    PrevAnswer,
 }
 
 impl std::fmt::Display for Expr {
@@ -43,6 +44,7 @@ impl std::fmt::Display for Expr {
             Expr::PrefixOp { op, arg } => write!(f, "({}{})", op, arg),
             Expr::PostfixOp { op, arg } => write!(f, "({}{})", arg, op),
             Expr::InfixOp { op, lhs, rhs } => write!(f, "({} {} {})", lhs, op, rhs),
+            Expr::PrevAnswer => write!(f, "_"),
         }
     }
 }
@@ -110,6 +112,7 @@ impl Expr {
                     .get();
                 Ok(variable)
             }
+            Expr::PrevAnswer => fcontext.get_prev_answer().ok_or(EvalError::NoHistory),
         }
     }
 }
