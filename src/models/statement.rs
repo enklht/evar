@@ -1,7 +1,4 @@
-use std::cell::RefCell;
-use std::rc::Rc;
-
-use super::{EvalError, Expr, FunctionContext, Value, VariableContext};
+use super::{Context, EvalError, Expr, Value};
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
@@ -32,16 +29,11 @@ impl std::fmt::Display for Stmt {
 }
 
 impl Stmt {
-    pub fn eval(
-        self,
-        fcontext: &mut FunctionContext,
-        vcontext: Rc<RefCell<VariableContext>>,
-    ) -> Result<Value, EvalError> {
+    pub fn eval(self, fcontext: &mut Context) -> Result<Value, EvalError> {
         match self {
             Stmt::DefVar { name, expr } => {
-                let val = expr.eval(fcontext, vcontext.clone())?;
-                let variable = vcontext
-                    .borrow_mut()
+                let val = expr.eval(fcontext)?;
+                let variable = fcontext
                     .set_variable(&name, val)
                     .ok_or(EvalError::InvalidVariableDefinition(name))?;
                 Ok(variable)
@@ -55,7 +47,7 @@ impl Stmt {
                 Ok(Value::null())
             }
             Stmt::Expr(expr) => {
-                let answer = expr.eval(fcontext, vcontext)?;
+                let answer = expr.eval(fcontext)?;
                 fcontext.set_prev_answer(&answer);
                 Ok(answer)
             }
@@ -71,24 +63,18 @@ mod tests {
 
     #[test]
     fn test_def_var_eval() {
-        let (mut fcontext, vcontext) = create_context(&Radian);
+        let mut fcontext = create_context(&Radian);
         let stmt = Stmt::DefVar {
             name: "x".to_string(),
             expr: Expr::Float(42.0),
         };
-        assert_eq!(
-            stmt.eval(&mut fcontext, vcontext.clone()).unwrap(),
-            Value::from(42.0)
-        );
-        assert_eq!(
-            vcontext.borrow().get_variable("x").unwrap().get(),
-            Value::from(42.0)
-        );
+        assert_eq!(stmt.eval(&mut fcontext).unwrap(), Value::from(42.0));
+        assert_eq!(fcontext.get_variable("x").unwrap().get(), Value::from(42.0));
     }
 
     #[test]
     fn test_def_fun_eval() {
-        let (mut fcontext, vcontext) = create_context(&Radian);
+        let mut fcontext = create_context(&Radian);
         let stmt = Stmt::DefFun {
             name: "add".to_string(),
             arg_names: vec!["a".to_string(), "b".to_string()],
@@ -98,17 +84,14 @@ mod tests {
                 rhs: Box::new(Expr::Variable("b".to_string())),
             },
         };
-        assert!(stmt.eval(&mut fcontext, vcontext).is_ok());
+        assert!(stmt.eval(&mut fcontext).is_ok());
         assert!(fcontext.get_function("add").is_some());
     }
 
     #[test]
     fn test_expr_eval() {
-        let (mut fcontext, vcontext) = create_context(&Radian);
+        let mut fcontext = create_context(&Radian);
         let stmt = Stmt::Expr(Expr::Float(42.0));
-        assert_eq!(
-            stmt.eval(&mut fcontext, vcontext).unwrap(),
-            Value::from(42.0)
-        );
+        assert_eq!(stmt.eval(&mut fcontext).unwrap(), Value::from(42.0));
     }
 }
