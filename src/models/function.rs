@@ -5,8 +5,8 @@ use std::rc::Rc;
 pub struct Function(Rc<FunctionInner>);
 
 impl Function {
-    pub fn call(&self, args: Vec<Value>, fcontext: &mut Context) -> Result<Value, EvalError> {
-        self.0.call(args, fcontext)
+    pub fn call(&self, args: Vec<Value>, context: &mut Context) -> Result<Value, EvalError> {
+        self.0.call(args, context)
     }
 
     pub fn new_internal(arg_names: Vec<String>, body: Expr) -> Function {
@@ -35,7 +35,7 @@ pub enum FunctionInner {
 }
 
 impl FunctionInner {
-    pub fn call(&self, args: Vec<Value>, fcontext: &mut Context) -> Result<Value, EvalError> {
+    pub fn call(&self, args: Vec<Value>, context: &mut Context) -> Result<Value, EvalError> {
         match self {
             FunctionInner::External { arity, body } => {
                 if args.len() == *arity {
@@ -53,12 +53,12 @@ impl FunctionInner {
                 body,
             } => {
                 if args.len() == *arity {
-                    fcontext.extend();
+                    context.extend();
 
                     for (arg_name, arg) in arg_names.iter().zip(args.into_iter()) {
-                        fcontext.set_variable(arg_name, arg);
+                        context.set_variable(arg_name, arg);
                     }
-                    body.eval(fcontext)
+                    body.eval(context)
                 } else {
                     Err(EvalError::InvalidNumberOfArguments {
                         expected: *arity,

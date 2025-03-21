@@ -49,54 +49,54 @@ impl std::fmt::Display for Expr {
 }
 
 impl Expr {
-    pub fn eval(&self, fcontext: &mut Context) -> Result<Value, EvalError> {
+    pub fn eval(&self, context: &mut Context) -> Result<Value, EvalError> {
         match self {
             Expr::Int(f) => Ok(Value::from(*f)),
             Expr::Float(f) => Ok(Value::from(*f)),
             Expr::InfixOp { op, lhs, rhs } => {
                 use InfixOp::*;
                 match op {
-                    Add => Ok(lhs.eval(fcontext)? + rhs.eval(fcontext)?),
-                    Sub => Ok(lhs.eval(fcontext)? - rhs.eval(fcontext)?),
-                    Mul => Ok(lhs.eval(fcontext)? * rhs.eval(fcontext)?),
-                    Div => lhs.eval(fcontext)? / rhs.eval(fcontext)?,
-                    Rem => lhs.eval(fcontext)?.rem_euclid(rhs.eval(fcontext)?),
-                    Pow => Ok(lhs.eval(fcontext)?.pow(rhs.eval(fcontext)?)),
+                    Add => Ok(lhs.eval(context)? + rhs.eval(context)?),
+                    Sub => Ok(lhs.eval(context)? - rhs.eval(context)?),
+                    Mul => Ok(lhs.eval(context)? * rhs.eval(context)?),
+                    Div => lhs.eval(context)? / rhs.eval(context)?,
+                    Rem => lhs.eval(context)?.rem_euclid(rhs.eval(context)?),
+                    Pow => Ok(lhs.eval(context)?.pow(rhs.eval(context)?)),
                 }
             }
             Expr::PrefixOp { op, arg } => {
                 use PrefixOp::*;
                 match op {
-                    Neg => Ok(-arg.eval(fcontext)?),
+                    Neg => Ok(-arg.eval(context)?),
                 }
             }
             Expr::PostfixOp { op, arg } => {
                 use PostfixOp::*;
                 match op {
-                    Fac => arg.eval(fcontext)?.factorial(),
+                    Fac => arg.eval(context)?.factorial(),
                 }
             }
             Expr::FnCall { name, args } => {
                 let mut evaluated_args = Vec::new();
                 for arg in args {
-                    evaluated_args.push(arg.eval(fcontext)?);
+                    evaluated_args.push(arg.eval(context)?);
                 }
 
-                let function = fcontext
+                let function = context
                     .get_function(name)
                     .ok_or(EvalError::FunctionNotFound(name.to_string()))?
                     .clone();
 
-                function.call(evaluated_args, fcontext)
+                function.call(evaluated_args, context)
             }
             Expr::Variable(name) => {
-                let variable = fcontext
+                let variable = context
                     .get_variable(name)
                     .ok_or(EvalError::VariableNotFound(name.to_string()))?
                     .get();
                 Ok(variable.into())
             }
-            Expr::PrevAnswer => fcontext.get_prev_answer().ok_or(EvalError::NoHistory),
+            Expr::PrevAnswer => context.get_prev_answer().ok_or(EvalError::NoHistory),
         }
     }
 }
@@ -108,50 +108,50 @@ mod tests {
 
     #[test]
     fn test_number() {
-        let mut fcontext = create_context(&Radian);
+        let mut context = create_context(&Radian);
         let expr = Expr::Float(42.0);
-        assert_eq!(expr.eval(&mut fcontext,).unwrap(), Value::from(42.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(42.0));
     }
 
     #[test]
     fn test_infix_op_add() {
-        let mut fcontext = create_context(&Radian);
+        let mut context = create_context(&Radian);
         let expr = Expr::InfixOp {
             op: InfixOp::Add,
             lhs: Box::new(Expr::Float(1.0)),
             rhs: Box::new(Expr::Float(2.0)),
         };
-        assert_eq!(expr.eval(&mut fcontext,).unwrap(), Value::from(3.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(3.0));
     }
 
     #[test]
     fn test_prefix_op_neg() {
-        let mut fcontext = create_context(&Radian);
+        let mut context = create_context(&Radian);
         let expr = Expr::PrefixOp {
             op: PrefixOp::Neg,
             arg: Box::new(Expr::Float(5.0)),
         };
-        assert_eq!(expr.eval(&mut fcontext,).unwrap(), Value::from(-5.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(-5.0));
     }
 
     #[test]
     fn test_postfix_op_fac() {
-        let mut fcontext = create_context(&Radian);
+        let mut context = create_context(&Radian);
         let expr = Expr::PostfixOp {
             op: PostfixOp::Fac,
             arg: Box::new(Expr::Float(5.0)),
         };
-        assert_eq!(expr.eval(&mut fcontext,).unwrap(), Value::from(120.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(120.0));
     }
 
     #[test]
     fn test_fn_call() {
-        let mut fcontext = create_context(&Radian);
+        let mut context = create_context(&Radian);
         let expr = Expr::FnCall {
             name: "mock_fn".to_string(),
             args: vec![Expr::Float(2.0), Expr::Float(3.0)],
         };
-        fcontext.set_function(
+        context.set_function(
             "mock_fn",
             vec![String::from("x"), String::from("y")],
             Expr::InfixOp {
@@ -160,6 +160,6 @@ mod tests {
                 rhs: Expr::Variable(String::from("y")).into(),
             },
         );
-        assert_eq!(expr.eval(&mut fcontext,).unwrap(), Value::from(5.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(5.0));
     }
 }
