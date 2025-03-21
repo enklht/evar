@@ -33,7 +33,7 @@ fn main() {
                     println!("{}", stmt)
                 };
                 match stmt.eval(&mut fcontext, vcontext.clone()) {
-                    Ok(out) => println!("{}", out),
+                    Ok(out) => println!("{:?}", out),
                     Err(err) => eprintln!("{}", err),
                 }
             }

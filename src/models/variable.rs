@@ -1,15 +1,17 @@
+use super::Value;
+
 #[derive(Clone)]
 pub enum Variable {
-    External(f64),
-    Internal(f64),
+    External(Value),
+    Internal(Value),
 }
 
 impl Variable {
-    pub fn get(&self) -> f64 {
+    pub fn get(&self) -> Value {
         use Variable::*;
         match self {
-            External(n) => *n,
-            Internal(n) => *n,
+            External(n) => n.clone(),
+            Internal(n) => n.clone(),
         }
     }
 }

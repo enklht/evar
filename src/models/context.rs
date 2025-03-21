@@ -1,9 +1,9 @@
-use super::{Function, Variable};
+use super::{Function, Value, Variable};
 use crate::models::Expr;
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 pub struct FunctionContext {
-    previous_answer: Option<f64>,
+    previous_answer: Option<Value>,
     functions: HashMap<String, Function>,
 }
 
@@ -30,12 +30,12 @@ impl FunctionContext {
         );
     }
 
-    pub fn get_prev_answer(&self) -> Option<f64> {
-        self.previous_answer
+    pub fn get_prev_answer(&self) -> Option<Value> {
+        self.previous_answer.clone()
     }
 
-    pub fn set_prev_answer(&mut self, value: f64) {
-        self.previous_answer = Some(value);
+    pub fn set_prev_answer(&mut self, value: &Value) {
+        self.previous_answer = Some(value.clone());
     }
 }
 
@@ -62,7 +62,7 @@ impl VariableContext {
         }
     }
 
-    pub fn set_variable(&mut self, name: &str, n: f64) -> Option<f64> {
+    pub fn set_variable(&mut self, name: &str, n: Value) -> Option<Value> {
         use super::Variable::*;
         use std::collections::hash_map::Entry::*;
 
@@ -70,11 +70,11 @@ impl VariableContext {
             Occupied(mut e) => match e.get() {
                 External(_) => return None,
                 Internal(_) => {
-                    e.insert(Internal(n));
+                    e.insert(Internal(n.clone()));
                 }
             },
             Vacant(e) => {
-                e.insert(Internal(n));
+                e.insert(Internal(n.clone()));
             }
         }
         Some(n)
