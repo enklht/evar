@@ -75,7 +75,7 @@ pub fn create_context(args: &Args) -> (FunctionContext, Rc<RefCell<VariableConte
         ],
     });
 
-    for (fname, function) in [
+    for (name, function) in [
         unary_fn!(sinh),
         unary_fn!(cosh),
         unary_fn!(tanh),
@@ -97,7 +97,7 @@ pub fn create_context(args: &Args) -> (FunctionContext, Rc<RefCell<VariableConte
             .unwrap()
             .powf(x.get(1).unwrap().recip())),
     ] {
-        functions.insert(fname, function);
+        functions.insert(name, function);
     }
 
     let variables = [

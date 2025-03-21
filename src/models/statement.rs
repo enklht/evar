@@ -13,7 +13,7 @@ pub enum Stmt {
     },
     DefFun {
         name: String,
-        args: Vec<String>,
+        arg_names: Vec<String>,
         body: Expr,
     },
     Expr(Expr),
@@ -23,7 +23,11 @@ impl std::fmt::Display for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::DefVar { name, expr } => write!(f, "let {} := {}", name, expr),
-            Stmt::DefFun { name, args, body } => write!(f, "let {}({:?}) := {}", name, args, body),
+            Stmt::DefFun {
+                name,
+                arg_names,
+                body,
+            } => write!(f, "let {}({:?}) := {}", name, arg_names, body),
             Stmt::Expr(expr) => write!(f, "{}", expr),
         }
     }
@@ -44,7 +48,11 @@ impl Stmt {
                     .ok_or(EvalError::InvalidVariableDefinition(name))?;
                 Ok(variable)
             }
-            Stmt::DefFun { name, args, body } => {
+            Stmt::DefFun {
+                name,
+                arg_names: args,
+                body,
+            } => {
                 fcontext.set_function(&name, args, body);
                 Ok(f64::NAN)
             }
@@ -84,7 +92,7 @@ mod tests {
         let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let stmt = Stmt::DefFun {
             name: "add".to_string(),
-            args: vec!["a".to_string(), "b".to_string()],
+            arg_names: vec!["a".to_string(), "b".to_string()],
             body: Expr::InfixOp {
                 op: crate::models::operators::InfixOp::Add,
                 lhs: Box::new(Expr::Variable("a".to_string())),
