@@ -2,115 +2,75 @@ use std::collections::HashMap;
 
 use crate::{
     args::AngleUnit,
-    models::{Context, Function, Value, Variable},
+    models::{Context, Function, Variable},
 };
 
 macro_rules! unary_fn {
-    ($fname:ident) => {
-        (
-            stringify!($fname).into(),
-            Function::External {
-                arity: 1,
-                body: |x| x.first().unwrap().$fname(),
-            },
-        )
-    };
-    ($fname:ident, $body:expr) => {
-        (
-            stringify!($fname).into(),
-            Function::External {
-                arity: 1,
-                body: $body,
-            },
-        )
+    ($fname:expr, $body:expr) => {
+        (String::from($fname), Function::new_external(1, $body))
     };
 }
 
 macro_rules! binary_fn {
-    ($fname:ident) => {
-        (
-            stringify!($fname).into(),
-            Function::External {
-                arity: 2,
-                body: |x| x.first().unwrap().$fname(*x.get(1).unwrap()),
-            },
-        )
-    };
-    ($fname:ident, $body:expr) => {
-        (
-            stringify!($fname).into(),
-            Function::External {
-                arity: 2,
-                body: $body,
-            },
-        )
+    ($fname:expr, $body:expr) => {
+        (String::from($fname), Function::new_external(2, $body))
     };
 }
 
+#[rustfmt::skip]
 pub fn create_context(angle_unit: &AngleUnit) -> Context {
     let mut functions = HashMap::from(match angle_unit {
         AngleUnit::Radian => [
-            // unary_fn!(sin),
-            // unary_fn!(cos),
-            // unary_fn!(tan),
-            // unary_fn!(sec, |x| x.first().unwrap().sin().recip()),
-            // unary_fn!(csc, |x| x.first().unwrap().cos().recip()),
-            // unary_fn!(cot, |x| x.first().unwrap().tan().recip()),
-            // unary_fn!(asin),
-            // unary_fn!(acos),
-            // unary_fn!(atan),
+            unary_fn!("sin", |x| f64::from(&x[0]).sin().into()),
+            unary_fn!("cos", |x| f64::from(&x[0]).cos().into()),
+            unary_fn!("tan", |x| f64::from(&x[0]).tan().into()),
+            unary_fn!("sec", |x| f64::from(&x[0]).sin().recip().into()),
+            unary_fn!("csc", |x| f64::from(&x[0]).cos().recip().into()),
+            unary_fn!("cot", |x| f64::from(&x[0]).tan().recip().into()),
+            unary_fn!("asin", |x| f64::from(&x[0]).asin().into()),
+            unary_fn!("acos", |x| f64::from(&x[0]).acos().into()),
+            unary_fn!("atan", |x| f64::from(&x[0]).atan().into()),
         ],
         AngleUnit::Degree => [
-            // unary_fn!(sin, |x| x.first().unwrap().to_radians().sin()),
-            // unary_fn!(cos, |x| x.first().unwrap().to_radians().cos()),
-            // unary_fn!(tan, |x| x.first().unwrap().to_radians().tan()),
-            // unary_fn!(sec, |x| x.first().unwrap().to_radians().sin().recip()),
-            // unary_fn!(csc, |x| x.first().unwrap().to_radians().cos().recip()),
-            // unary_fn!(cot, |x| x.first().unwrap().to_radians().tan().recip()),
-            // unary_fn!(asin, |x| x.first().unwrap().asin().to_degrees()),
-            // unary_fn!(acos, |x| x.first().unwrap().acos().to_degrees()),
-            // unary_fn!(atan, |x| x.first().unwrap().atan().to_degrees()),
+            unary_fn!("sin", |x| f64::from(&x[0]).to_radians().sin().into()),
+            unary_fn!("cos", |x| f64::from(&x[0]).to_radians().cos().into()),
+            unary_fn!("tan", |x| f64::from(&x[0]).to_radians().tan().into()),
+            unary_fn!("sec", |x| f64::from(&x[0]).to_radians().sin().recip().into()),
+            unary_fn!("csc", |x| f64::from(&x[0]).to_radians().cos().recip().into()),
+            unary_fn!("cot", |x| f64::from(&x[0]).to_radians().tan().recip().into()),
+            unary_fn!("asin", |x| f64::from(&x[0]).asin().to_degrees().into()),
+            unary_fn!("acos", |x| f64::from(&x[0]).acos().to_degrees().into()),
+            unary_fn!("atan", |x| f64::from(&x[0]).atan().to_degrees().into()),
         ],
     });
 
     for (name, function) in [
-        // unary_fn!(sinh),
-        // unary_fn!(cosh),
-        // unary_fn!(tanh),
-        // unary_fn!(floor),
-        // unary_fn!(ceil),
-        // unary_fn!(round),
-        // unary_fn!(abs),
-        // unary_fn!(sqrt),
-        // unary_fn!(exp),
-        // unary_fn!(exp2),
-        // unary_fn!(ln),
-        // unary_fn!(log2),
-        // unary_fn!(log10),
-        // unary_fn!(rad, |x| x.first().unwrap().to_radians()),
-        // unary_fn!(deg, |x| x.first().unwrap().to_degrees()),
-        // binary_fn!(log),
-        // binary_fn!(nroot, |x| x
-        //     .first()
-        //     .unwrap()
-        //     .powf(x.get(1).unwrap().recip())),
+        unary_fn!("sinh", |x| f64::from(&x[0]).sinh().into()),
+        unary_fn!("cosh", |x| f64::from(&x[0]).cosh().into()),
+        unary_fn!("tanh", |x| f64::from(&x[0]).tanh().into()),
+        unary_fn!("sqrt", |x| f64::from(&x[0]).sqrt().into()),
+        unary_fn!("exp", |x| f64::from(&x[0]).exp().into()),
+        unary_fn!("exp2", |x| f64::from(&x[0]).exp2().into()),
+        unary_fn!("ln", |x| f64::from(&x[0]).ln().into()),
+        unary_fn!("log2", |x| f64::from(&x[0]).log2().into()),
+        unary_fn!("log10", |x| f64::from(&x[0]).log10().into()),
+        unary_fn!("rad", |x| f64::from(&x[0]).to_radians().into()),
+        unary_fn!("deg", |x| f64::from(&x[0]).to_degrees().into()),
+        unary_fn!("floor", |x| (f64::from(&x[0]).floor() as i32).into()),
+        unary_fn!("ceil", |x| (f64::from(&x[0]).ceil() as i32).into()),
+        unary_fn!("round", |x| (f64::from(&x[0]).round() as i32).into()),
+        unary_fn!("abs", |x| x[0].abs()),
+        binary_fn!("log", |x| f64::from(&x[0]).log(f64::from(&x[1])).into()),
+        binary_fn!("nroot", |x| f64::from(&x[0]).powf(f64::from(&x[1]).recip()).into()),
     ] {
         functions.insert(name, function);
     }
 
+    use std::f64::consts::{E, PI, TAU};
     let variables = [
-        (
-            "e".to_string(),
-            Variable::External(std::f64::consts::E.into()),
-        ),
-        (
-            "pi".to_string(),
-            Variable::External(std::f64::consts::PI.into()),
-        ),
-        (
-            "tau".to_string(),
-            Variable::External(std::f64::consts::TAU.into()),
-        ),
+        (String::from("e"), Variable::External(E.into())),
+        (String::from("pi"), Variable::External(PI.into())),
+        (String::from("tau"), Variable::External(TAU.into())),
     ]
     .into();
 

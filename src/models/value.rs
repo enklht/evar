@@ -41,6 +41,16 @@ impl From<f64> for Value {
     }
 }
 
+impl From<&Value> for f64 {
+    fn from(value: &Value) -> f64 {
+        match &*value.0.clone() {
+            ValueInner::Int(x) => f64::from(*x),
+            ValueInner::Float(x) => *x,
+            _ => todo!(),
+        }
+    }
+}
+
 macro_rules! define_binop {
     ($trait:ident, $fname:ident) => {
         impl $trait<Value> for Value {
@@ -165,6 +175,15 @@ impl Value {
                 expected: String::from("Integer"),
                 found: v.type_name(),
             }),
+        }
+    }
+
+    pub fn abs(&self) -> Value {
+        use ValueInner::*;
+        match &*self.0 {
+            Int(n) => n.abs().into(),
+            Float(n) => n.abs().into(),
+            _ => unimplemented!(),
         }
     }
 }

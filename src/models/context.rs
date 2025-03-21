@@ -65,20 +65,20 @@ impl Context {
     }
 }
 
-pub struct VariableContext {
+struct VariableContext {
     parent: Option<Box<VariableContext>>,
     variables: HashMap<String, Variable>,
 }
 
 impl VariableContext {
-    pub fn new(variables: HashMap<String, Variable>) -> VariableContext {
+    fn new(variables: HashMap<String, Variable>) -> VariableContext {
         VariableContext {
             parent: None,
             variables,
         }
     }
 
-    pub fn get_variable(&self, name: &str) -> Option<Variable> {
+    fn get_variable(&self, name: &str) -> Option<Variable> {
         if let Some(val) = self.variables.get(name) {
             Some(val.clone())
         } else if let Some(parent) = &self.parent {
@@ -88,7 +88,7 @@ impl VariableContext {
         }
     }
 
-    pub fn set_variable(&mut self, name: &str, value: Value) -> Option<Value> {
+    fn set_variable(&mut self, name: &str, value: Value) -> Option<Value> {
         use super::Variable::*;
         use std::collections::hash_map::Entry::*;
 
