@@ -560,10 +560,10 @@ fn variable_definition_test() {
     );
 
     assert_eq!(
-        parse_stmt("let y = 3.14"),
+        parse_stmt("let y = 3.15"),
         Ok(Stmt::DefVar {
             name: "y".into(),
-            expr: Expr::Number(3.14),
+            expr: Expr::Number(3.15),
         })
     );
 

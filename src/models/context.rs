@@ -15,12 +15,12 @@ impl FunctionContext {
         self.functions.get(name)
     }
 
-    pub fn set_function(&mut self, name: &str, args: Vec<String>, body: Expr) {
+    pub fn set_function(&mut self, name: &str, arg_names: Vec<String>, body: Expr) {
         self.functions.insert(
             name.to_string(),
             Function::Internal {
-                arity: args.len(),
-                arg_names: args,
+                arity: arg_names.len(),
+                arg_names,
                 body,
             },
         );
