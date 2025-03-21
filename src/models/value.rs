@@ -133,7 +133,13 @@ impl Value {
     pub fn pow(self, rhs: Value) -> Self {
         use ValueInner::*;
         match (&*self.0, &*rhs.0) {
-            (Int(x), Int(y)) => f64::from(*x).powi(*y).into(),
+            (Int(x), Int(y)) => {
+                if *y < 0 {
+                    f64::from(*x).powi(*y).into()
+                } else {
+                    (*x).pow(*y as u32).into()
+                }
+            }
             (Float(x), Int(y)) => x.powi(*y).into(),
             (Int(x), Float(y)) => f64::from(*x).powf(*y).into(),
             (Float(x), Float(y)) => x.powf(*y).into(),
