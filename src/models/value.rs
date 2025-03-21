@@ -1,5 +1,7 @@
 use std::rc::Rc;
 
+use astro_float::BigFloat;
+
 use super::EvalError;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,6 +18,7 @@ enum ValueInner {
     Null,
     Int(i32),
     Float(f64),
+    BigFloat(BigFloat),
 }
 
 impl ValueInner {
@@ -25,6 +28,7 @@ impl ValueInner {
             Null => String::from("Null"),
             Int(_) => String::from("Integer"),
             Float(_) => String::from("Float"),
+            BigFloat(_) => String::from("BigFloat"),
         }
     }
 }
