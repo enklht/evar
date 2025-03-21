@@ -23,6 +23,9 @@ pub enum EvalError {
 
     #[error("failed to define a variable: {0}")]
     InvalidVariableDefinition(String),
+
+    #[error("no previous answer")]
+    NoHistory,
 }
 
 #[derive(Debug, Error)]

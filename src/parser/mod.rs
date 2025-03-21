@@ -100,6 +100,7 @@ where
             number.clone(),
             fn_call,
             variable,
+            just(Token::Underscore).map(|_| Expr::PrevAnswer),
             expr.clone()
                 .delimited_by(just(Token::LParen), just(Token::RParen)),
         ))

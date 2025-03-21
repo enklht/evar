@@ -56,7 +56,11 @@ impl Stmt {
                 fcontext.set_function(&name, args, body);
                 Ok(f64::NAN)
             }
-            Stmt::Expr(expr) => expr.eval(fcontext, vcontext),
+            Stmt::Expr(expr) => {
+                let answer = expr.eval(fcontext, vcontext)?;
+                fcontext.set_prev_answer(answer);
+                Ok(answer)
+            }
         }
     }
 }
