@@ -11,8 +11,6 @@ use rustyline::{
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
 struct RustyLineHelper {
-    #[rustyline(Completer)]
-    completer: FilenameCompleter,
     #[rustyline(Validator)]
     validator: MatchingBracketValidator,
     #[rustyline(Hinter)]
@@ -92,7 +90,6 @@ impl SevaEditor {
             .build();
 
         let helper = RustyLineHelper {
-            completer: FilenameCompleter::new(),
             validator: MatchingBracketValidator::new(),
             hinter: HistoryHinter::new(),
             highlighter: SevaHighlighter,
