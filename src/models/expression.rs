@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::EvalError;
+use super::{EvalError, Value};
 use super::{FunctionContext, VariableContext, operators::*};
 
 #[derive(Debug, PartialEq)]
@@ -54,30 +54,30 @@ impl Expr {
         &self,
         fcontext: &FunctionContext,
         vcontext: Rc<RefCell<VariableContext>>,
-    ) -> Result<f64, EvalError> {
+    ) -> Result<Value, EvalError> {
         match self {
-            Expr::Number(f) => Ok(*f),
+            Expr::Number(f) => Ok(Value::from(*f)),
             Expr::InfixOp { op, lhs, rhs } => {
                 use InfixOp::*;
                 match op {
                     Add => {
                         Ok(lhs.eval(fcontext, vcontext.clone())? + rhs.eval(fcontext, vcontext)?)
                     }
-                    Sub => {
-                        Ok(lhs.eval(fcontext, vcontext.clone())? - rhs.eval(fcontext, vcontext)?)
-                    }
-                    Mul => {
-                        Ok(lhs.eval(fcontext, vcontext.clone())? * rhs.eval(fcontext, vcontext)?)
-                    }
-                    Div => {
-                        Ok(lhs.eval(fcontext, vcontext.clone())? / rhs.eval(fcontext, vcontext)?)
-                    }
-                    Rem => Ok(lhs
-                        .eval(fcontext, vcontext.clone())?
-                        .rem_euclid(rhs.eval(fcontext, vcontext)?)),
-                    Pow => Ok(lhs
-                        .eval(fcontext, vcontext.clone())?
-                        .powf(rhs.eval(fcontext, vcontext)?)),
+                    _ => unimplemented!(), // Sub => {
+                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? - rhs.eval(fcontext, vcontext)?)
+                                           // }
+                                           // Mul => {
+                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? * rhs.eval(fcontext, vcontext)?)
+                                           // }
+                                           // Div => {
+                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? / rhs.eval(fcontext, vcontext)?)
+                                           // }
+                                           // Rem => Ok(lhs
+                                           //     .eval(fcontext, vcontext.clone())?
+                                           //     .rem_euclid(rhs.eval(fcontext, vcontext)?)),
+                                           // Pow => Ok(lhs
+                                           //     .eval(fcontext, vcontext.clone())?
+                                           //     .pow(rhs.eval(fcontext, vcontext)?)),
                 }
             }
             Expr::PrefixOp { op, arg } => {
@@ -89,7 +89,7 @@ impl Expr {
             Expr::PostfixOp { op, arg } => {
                 use PostfixOp::*;
                 match op {
-                    Fac => factorial(arg.eval(fcontext, vcontext)?),
+                    Fac => arg.eval(fcontext, vcontext)?.factorial(),
                 }
             }
             Expr::FnCall { name, args } => {
@@ -110,7 +110,7 @@ impl Expr {
                     .get_variable(name)
                     .ok_or(EvalError::VariableNotFound(name.to_string()))?
                     .get();
-                Ok(variable)
+                Ok(variable.into())
             }
             Expr::PrevAnswer => fcontext.get_prev_answer().ok_or(EvalError::NoHistory),
         }
@@ -148,7 +148,7 @@ mod tests {
     fn test_number() {
         let (fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let expr = Expr::Number(42.0);
-        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 42.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(42.0));
     }
 
     #[test]
@@ -159,7 +159,7 @@ mod tests {
             lhs: Box::new(Expr::Number(1.0)),
             rhs: Box::new(Expr::Number(2.0)),
         };
-        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 3.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(3.0));
     }
 
     #[test]
@@ -169,7 +169,7 @@ mod tests {
             op: PrefixOp::Neg,
             arg: Box::new(Expr::Number(5.0)),
         };
-        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), -5.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(-5.0));
     }
 
     #[test]
@@ -179,7 +179,7 @@ mod tests {
             op: PostfixOp::Fac,
             arg: Box::new(Expr::Number(5.0)),
         };
-        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 120.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(120.0));
     }
 
     #[test]
@@ -198,6 +198,6 @@ mod tests {
                 rhs: Expr::Variable("y".into()).into(),
             },
         );
-        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), 5.0);
+        assert_eq!(expr.eval(&fcontext, vcontext).unwrap(), Value::from(5.0));
     }
 }

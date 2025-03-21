@@ -12,6 +12,9 @@ pub enum EvalError {
     #[error("overflow")]
     Overflow,
 
+    #[error("type error (expected: {expected}, found: {found})")]
+    TypeError { expected: String, found: String },
+
     #[error("invalid number of arguments (expected: {expected}, found: {found})")]
     InvalidNumberOfArguments { expected: usize, found: usize },
 

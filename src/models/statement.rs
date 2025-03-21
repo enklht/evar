@@ -1,9 +1,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use super::EvalError;
-
-use super::{Expr, FunctionContext, VariableContext};
+use super::{EvalError, Expr, FunctionContext, Value, VariableContext};
 
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
@@ -38,7 +36,7 @@ impl Stmt {
         self,
         fcontext: &mut FunctionContext,
         vcontext: Rc<RefCell<VariableContext>>,
-    ) -> Result<f64, EvalError> {
+    ) -> Result<Value, EvalError> {
         match self {
             Stmt::DefVar { name, expr } => {
                 let val = expr.eval(fcontext, vcontext.clone())?;
@@ -54,11 +52,11 @@ impl Stmt {
                 body,
             } => {
                 fcontext.set_function(&name, args, body);
-                Ok(f64::NAN)
+                Ok(Value::null())
             }
             Stmt::Expr(expr) => {
                 let answer = expr.eval(fcontext, vcontext)?;
-                fcontext.set_prev_answer(answer);
+                fcontext.set_prev_answer(&answer);
                 Ok(answer)
             }
         }
@@ -87,8 +85,14 @@ mod tests {
             name: "x".to_string(),
             expr: Expr::Number(42.0),
         };
-        assert_eq!(stmt.eval(&mut fcontext, vcontext.clone()).unwrap(), 42.0);
-        assert_eq!(vcontext.borrow().get_variable("x").unwrap().get(), 42.0);
+        assert_eq!(
+            stmt.eval(&mut fcontext, vcontext.clone()).unwrap(),
+            Value::from(42.0)
+        );
+        assert_eq!(
+            vcontext.borrow().get_variable("x").unwrap().get(),
+            Value::from(42.0)
+        );
     }
 
     #[test]
@@ -111,6 +115,9 @@ mod tests {
     fn test_expr_eval() {
         let (mut fcontext, vcontext) = create_context(&RADIAN_ARGS);
         let stmt = Stmt::Expr(Expr::Number(42.0));
-        assert_eq!(stmt.eval(&mut fcontext, vcontext).unwrap(), 42.0);
+        assert_eq!(
+            stmt.eval(&mut fcontext, vcontext).unwrap(),
+            Value::from(42.0)
+        );
     }
 }

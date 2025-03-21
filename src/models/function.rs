@@ -1,11 +1,11 @@
 use std::{cell::RefCell, rc::Rc};
 
-use super::{EvalError, Expr, FunctionContext, VariableContext};
+use super::{EvalError, Expr, FunctionContext, Value, VariableContext};
 
 pub enum Function {
     External {
         arity: usize,
-        body: fn(Vec<f64>) -> f64,
+        body: fn(Vec<Value>) -> Value,
     },
     Internal {
         arity: usize,
@@ -17,10 +17,10 @@ pub enum Function {
 impl Function {
     pub fn call(
         &self,
-        args: Vec<f64>,
+        args: Vec<Value>,
         fcontext: &FunctionContext,
         vcontext: Rc<RefCell<VariableContext>>,
-    ) -> Result<f64, EvalError> {
+    ) -> Result<Value, EvalError> {
         match self {
             Function::External { arity, body } => {
                 if args.len() == *arity {
