@@ -170,7 +170,7 @@ mod tests {
         };
         fcontext.set_function(
             "mock_fn",
-            vec![String::from("x".into(), "y")],
+            vec![String::from("x"), String::from("y")],
             Expr::InfixOp {
                 op: InfixOp::Add,
                 lhs: Expr::Variable(String::from("x")).into(),

@@ -563,7 +563,8 @@ fn variable_definition_test() {
             name: String::from("z"),
             expr: binop!(
                 Add,
-                Expr::Variable(String::from("x".into()), Expr::Variable("y"))
+                Expr::Variable(String::from("x")),
+                Expr::Variable(String::from("y"))
             )
         })
     );
