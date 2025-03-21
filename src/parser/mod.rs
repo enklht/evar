@@ -68,17 +68,12 @@ where
 {
     let whitespace = just(Token::Space).or_not();
 
-    let number = just(Token::Minus)
-        .or_not()
-        .then(select! {
-            Token::Number(n) => n
-        })
-        .map(|(sign, n)| match sign {
-            Some(_) => Expr::Number(-n),
-            None => Expr::Number(n),
-        })
-        .labelled("number")
-        .boxed();
+    let number = select! {
+        Token::Int(n) => Expr::Int(n),
+        Token::Float(n) => Expr::Float(n)
+    }
+    .labelled("number")
+    .boxed();
 
     recursive(|expr| {
         let fn_call = select! {
@@ -119,6 +114,7 @@ where
         let prefixed = postfixed
             .clone()
             .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
+                .then_ignore(whitespace.clone())
                 .then(postfixed.clone())
                 .map(|(op, rhs)| Expr::PrefixOp {
                     op,

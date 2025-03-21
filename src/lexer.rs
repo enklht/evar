@@ -7,8 +7,11 @@ pub enum Token<'a> {
     #[regex(r"\s+")]
     Space,
 
-    #[regex(r"(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?", |lex| lex.slice().parse::<f64>().unwrap())]
-    Number(f64),
+    #[regex(r"-?(0|[1-9]\d*)", |lex| lex.slice().parse::<i32>().unwrap())]
+    Int(i32),
+
+    #[regex(r"-?(0|[1-9]\d*)((\.\d+([eE][+-]?\d+)?)|((\.\d+)?[eE][+-]?\d+))", |lex| lex.slice().parse::<f64>().unwrap())]
+    Float(f64),
 
     #[token("let")]
     Let,
@@ -48,7 +51,8 @@ impl std::fmt::Display for Token<'_> {
         match self {
             Self::Error => write!(f, "unknown symbol"),
             Self::Space => write!(f, " "),
-            Self::Number(s) => write!(f, "{}", s),
+            Self::Int(s) => write!(f, "{}", s),
+            Self::Float(s) => write!(f, "{}", s),
             Self::Plus => write!(f, "+"),
             Self::Minus => write!(f, "-"),
             Self::Asterisk => write!(f, "*"),
