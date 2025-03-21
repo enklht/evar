@@ -29,6 +29,7 @@ pub enum Token<'a> {
     #[token("%")]
     Percent,
     #[token("^")]
+    #[token("**")]
     Caret,
     #[token("!")]
     Exclamation,
