@@ -32,13 +32,13 @@ impl std::fmt::Display for Expr {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
             Expr::Variable(n) => write!(f, "{}", n),
-            Expr::FnCall { name: fname, args } => {
+            Expr::FnCall { name, args } => {
                 let args_str = args
                     .iter()
                     .map(|x| x.to_string())
                     .reduce(|acc, x| acc + ", " + &x)
                     .unwrap_or_else(|| "".into());
-                write!(f, "{}({})", fname, args_str)
+                write!(f, "{}({})", name, args_str)
             }
             Expr::PrefixOp { op, arg } => write!(f, "({}{})", op, arg),
             Expr::PostfixOp { op, arg } => write!(f, "({}{})", arg, op),
@@ -90,15 +90,15 @@ impl Expr {
                     Fac => factorial(arg.eval(fcontext, vcontext)?),
                 }
             }
-            Expr::FnCall { name: fname, args } => {
+            Expr::FnCall { name, args } => {
                 let mut evaluated_args = Vec::new();
                 for arg in args {
                     evaluated_args.push(arg.eval(fcontext, vcontext.clone())?);
                 }
 
                 let function = fcontext
-                    .get_function(fname)
-                    .ok_or(EvalError::FunctionNotFound(fname.to_string()))?;
+                    .get_function(name)
+                    .ok_or(EvalError::FunctionNotFound(name.to_string()))?;
 
                 function.call(evaluated_args, fcontext, vcontext)
             }
