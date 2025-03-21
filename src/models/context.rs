@@ -1,17 +1,49 @@
 use super::{Function, Value, Variable};
 use crate::models::Expr;
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::collections::HashMap;
 
-pub struct FunctionContext {
+pub struct Context {
     previous_answer: Option<Value>,
     functions: HashMap<String, Function>,
+    variables: Option<Box<VariableContext>>,
 }
 
-impl FunctionContext {
-    pub fn new(functions: HashMap<String, Function>) -> FunctionContext {
-        FunctionContext {
+impl Context {
+    pub fn new(
+        functions: HashMap<String, Function>,
+        variables: HashMap<String, Variable>,
+    ) -> Context {
+        Context {
             previous_answer: None,
             functions,
+            variables: Some(Box::new(VariableContext::new(variables))),
+        }
+    }
+
+    pub fn extend(&mut self) {
+        let variables = self.variables.take();
+        self.variables = Some(Box::new(VariableContext {
+            parent: variables,
+            variables: HashMap::new(),
+        }))
+    }
+
+    pub fn detach(&mut self) {
+        let variables = self.variables.take().unwrap().parent.take();
+        self.variables = variables
+    }
+
+    pub fn get_variable(&self, name: &str) -> Option<Variable> {
+        match &self.variables {
+            Some(variables) => variables.get_variable(name),
+            None => unreachable!(),
+        }
+    }
+
+    pub fn set_variable(&mut self, name: &str, value: Value) -> Option<Value> {
+        match &mut self.variables {
+            Some(variables) => variables.set_variable(name, value),
+            None => unreachable!(),
         }
     }
 
@@ -20,14 +52,8 @@ impl FunctionContext {
     }
 
     pub fn set_function(&mut self, name: &str, arg_names: Vec<String>, body: Expr) {
-        self.functions.insert(
-            name.to_string(),
-            Function::Internal {
-                arity: arg_names.len(),
-                arg_names,
-                body,
-            },
-        );
+        self.functions
+            .insert(name.to_string(), Function::new_internal(arg_names, body));
     }
 
     pub fn get_prev_answer(&self) -> Option<Value> {
@@ -40,7 +66,7 @@ impl FunctionContext {
 }
 
 pub struct VariableContext {
-    parent: Option<Rc<RefCell<VariableContext>>>,
+    parent: Option<Box<VariableContext>>,
     variables: HashMap<String, Variable>,
 }
 
@@ -56,13 +82,13 @@ impl VariableContext {
         if let Some(val) = self.variables.get(name) {
             Some(val.clone())
         } else if let Some(parent) = &self.parent {
-            parent.borrow().get_variable(name)
+            parent.get_variable(name)
         } else {
             None
         }
     }
 
-    pub fn set_variable(&mut self, name: &str, n: Value) -> Option<Value> {
+    pub fn set_variable(&mut self, name: &str, value: Value) -> Option<Value> {
         use super::Variable::*;
         use std::collections::hash_map::Entry::*;
 
@@ -70,20 +96,13 @@ impl VariableContext {
             Occupied(mut e) => match e.get() {
                 External(_) => return None,
                 Internal(_) => {
-                    e.insert(Internal(n.clone()));
+                    e.insert(Internal(value.clone()));
                 }
             },
             Vacant(e) => {
-                e.insert(Internal(n.clone()));
+                e.insert(Internal(value.clone()));
             }
         }
-        Some(n)
-    }
-
-    pub fn extend(parent: Rc<RefCell<VariableContext>>) -> VariableContext {
-        VariableContext {
-            parent: Some(parent),
-            variables: HashMap::new(),
-        }
+        Some(value)
     }
 }

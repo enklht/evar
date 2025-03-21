@@ -1,8 +1,28 @@
-use std::{cell::RefCell, rc::Rc};
+use super::{Context, EvalError, Expr, Value};
+use std::rc::Rc;
 
-use super::{EvalError, Expr, FunctionContext, Value, VariableContext};
+#[derive(Clone)]
+pub struct Function(Rc<FunctionInner>);
 
-pub enum Function {
+impl Function {
+    pub fn call(&self, args: Vec<Value>, fcontext: &mut Context) -> Result<Value, EvalError> {
+        self.0.call(args, fcontext)
+    }
+
+    pub fn new_internal(arg_names: Vec<String>, body: Expr) -> Function {
+        Function(Rc::new(FunctionInner::Internal {
+            arity: arg_names.len(),
+            arg_names,
+            body,
+        }))
+    }
+
+    pub fn new_external(arity: usize, body: fn(Vec<Value>) -> Value) -> Function {
+        Function(Rc::new(FunctionInner::External { arity, body }))
+    }
+}
+
+pub enum FunctionInner {
     External {
         arity: usize,
         body: fn(Vec<Value>) -> Value,
@@ -14,15 +34,10 @@ pub enum Function {
     },
 }
 
-impl Function {
-    pub fn call(
-        &self,
-        args: Vec<Value>,
-        fcontext: &FunctionContext,
-        vcontext: Rc<RefCell<VariableContext>>,
-    ) -> Result<Value, EvalError> {
+impl FunctionInner {
+    pub fn call(&self, args: Vec<Value>, fcontext: &mut Context) -> Result<Value, EvalError> {
         match self {
-            Function::External { arity, body } => {
+            FunctionInner::External { arity, body } => {
                 if args.len() == *arity {
                     Ok(body(args))
                 } else {
@@ -32,18 +47,18 @@ impl Function {
                     })
                 }
             }
-            Function::Internal {
+            FunctionInner::Internal {
                 arity,
                 arg_names,
                 body,
             } => {
                 if args.len() == *arity {
-                    let mut vcontext = VariableContext::extend(vcontext);
+                    fcontext.extend();
 
                     for (arg_name, arg) in arg_names.iter().zip(args.into_iter()) {
-                        vcontext.set_variable(arg_name, arg);
+                        fcontext.set_variable(arg_name, arg);
                     }
-                    body.eval(fcontext, Rc::new(RefCell::new(vcontext)))
+                    body.eval(fcontext)
                 } else {
                     Err(EvalError::InvalidNumberOfArguments {
                         expected: *arity,
