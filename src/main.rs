@@ -20,10 +20,18 @@ fn main() {
     let seva_dirs =
         ProjectDirs::from("", "enklht", "seva").expect("no valid home directory path retrieved");
     let mut history_path = std::path::PathBuf::from(seva_dirs.data_local_dir());
-    history_path.push("history.txt");
-    if editor.load_history(history_path.as_path()).is_err() {
-        println!("No hisoty found")
+
+    match std::fs::create_dir_all(&history_path) {
+        Ok(_) => {}
+        Err(e) => eprintln!("failed to create data directory: {}", e),
     };
+
+    history_path.push("history.txt");
+
+    match editor.load_history(history_path.as_path()) {
+        Ok(_) => {}
+        Err(e) => eprintln!("failed to load historoy: {}", e),
+    }
 
     loop {
         let input = editor.readline();
@@ -53,7 +61,8 @@ fn main() {
         }
     }
 
-    if editor.save_history(&history_path).is_err() {
-        println!("failed to save history.")
-    };
+    match editor.save_history(history_path.as_path()) {
+        Ok(_) => {}
+        Err(e) => eprintln!("failed to save history: {}", e),
+    }
 }
