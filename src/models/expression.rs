@@ -66,21 +66,19 @@ impl Expr {
                     Add => {
                         Ok(lhs.eval(fcontext, vcontext.clone())? + rhs.eval(fcontext, vcontext)?)
                     }
-                    _ => unimplemented!(), // Sub => {
-                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? - rhs.eval(fcontext, vcontext)?)
-                                           // }
-                                           // Mul => {
-                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? * rhs.eval(fcontext, vcontext)?)
-                                           // }
-                                           // Div => {
-                                           //     Ok(lhs.eval(fcontext, vcontext.clone())? / rhs.eval(fcontext, vcontext)?)
-                                           // }
-                                           // Rem => Ok(lhs
-                                           //     .eval(fcontext, vcontext.clone())?
-                                           //     .rem_euclid(rhs.eval(fcontext, vcontext)?)),
-                                           // Pow => Ok(lhs
-                                           //     .eval(fcontext, vcontext.clone())?
-                                           //     .pow(rhs.eval(fcontext, vcontext)?)),
+                    Sub => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? - rhs.eval(fcontext, vcontext)?)
+                    }
+                    Mul => {
+                        Ok(lhs.eval(fcontext, vcontext.clone())? * rhs.eval(fcontext, vcontext)?)
+                    }
+                    Div => lhs.eval(fcontext, vcontext.clone())? / rhs.eval(fcontext, vcontext)?,
+                    Rem => lhs
+                        .eval(fcontext, vcontext.clone())?
+                        .rem_euclid(rhs.eval(fcontext, vcontext)?),
+                    Pow => Ok(lhs
+                        .eval(fcontext, vcontext.clone())?
+                        .pow(rhs.eval(fcontext, vcontext)?)),
                 }
             }
             Expr::PrefixOp { op, arg } => {
