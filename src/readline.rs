@@ -107,4 +107,12 @@ impl SevaEditor {
     pub fn readline(&mut self) -> String {
         self.0.readline("> ").expect("failed to read line")
     }
+
+    pub fn load_history(&mut self, path: &std::path::Path) -> Result<(), crate::models::SevaError> {
+        self.0.load_history(path).map_err(|e| e.into())
+    }
+
+    pub fn save_history(&mut self, path: &std::path::Path) -> Result<(), crate::models::SevaError> {
+        self.0.save_history(path).map_err(|e| e.into())
+    }
 }

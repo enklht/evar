@@ -3,6 +3,7 @@ use chumsky::{
     prelude::*,
 };
 use clap::Parser as ClapParser;
+use directories::ProjectDirs;
 use seva::{ErrorReporter, args::Args, create_context, lex, parser, readline::SevaEditor};
 
 fn main() {
@@ -15,6 +16,14 @@ fn main() {
     let (mut fcontext, vcontext) = create_context(&angle_unit);
     let mut editor = SevaEditor::new(no_color);
     let mut reporter = ErrorReporter::new(no_color);
+
+    let seva_dirs =
+        ProjectDirs::from("", "enklht", "seva").expect("no valid home directory path retrieved");
+    let mut history_path = std::path::PathBuf::from(seva_dirs.data_local_dir());
+    history_path.push("history.txt");
+    if editor.load_history(history_path.as_path()).is_err() {
+        println!("No hisoty found")
+    };
 
     loop {
         let input = editor.readline();
@@ -43,4 +52,8 @@ fn main() {
             Err(errs) => reporter.report_error(errs, &input),
         }
     }
+
+    if editor.save_history(&history_path).is_err() {
+        println!("failed to save history.")
+    };
 }
