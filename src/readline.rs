@@ -1,8 +1,6 @@
 use std::borrow::Cow;
 
-use crate::lexer::Token;
 use colored::Colorize;
-use logos::Logos;
 use rustyline::{
     Completer, Config, Editor, Helper, Highlighter, Hinter, Validator, highlight::Highlighter,
     hint::HistoryHinter, history::FileHistory, validate::MatchingBracketValidator,
@@ -10,8 +8,8 @@ use rustyline::{
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
 struct RustyLineHelper {
-    #[rustyline(Validator)]
-    validator: MatchingBracketValidator,
+    // #[rustyline(Validator)]
+    // validator: MatchingBracketValidator,
     #[rustyline(Hinter)]
     hinter: HistoryHinter,
     #[rustyline(Highlighter)]
@@ -22,36 +20,37 @@ struct SevaHighlighter;
 
 impl Highlighter for SevaHighlighter {
     fn highlight<'l>(&self, line: &'l str, _pos: usize) -> std::borrow::Cow<'l, str> {
-        let tokens = Token::lexer(line).spanned();
+        // let tokens = Token::lexer(line).spanned();
 
-        let highlighted_line = tokens.fold(String::new(), |acc, (lex_result, span)| {
-            acc + &{
-                match lex_result {
-                    Err(_) => format!("{}", line[span].truecolor(237, 135, 150)),
-                    Ok(token) => match token {
-                        Token::Int(_) | Token::Float(_) => {
-                            format!("{}", line[span].truecolor(245, 169, 127))
-                        }
-                        Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
-                        Token::Plus
-                        | Token::Minus
-                        | Token::Asterisk
-                        | Token::Slash
-                        | Token::Percent
-                        | Token::Caret
-                        | Token::Exclamation => format!("{}", line[span].truecolor(125, 196, 228)),
-                        Token::LParen | Token::RParen => {
-                            format!("{}", line[span].truecolor(238, 212, 159))
-                        }
-                        Token::Let => format!("{}", line[span].truecolor(198, 160, 246)),
-                        Token::Equal => format!("{}", line[span].truecolor(125, 196, 228)),
-                        _ => line[span].to_string(),
-                    },
-                }
-            }
-        });
+        // let highlighted_line = tokens.fold(String::new(), |acc, (lex_result, span)| {
+        //     acc + &{
+        //         match lex_result {
+        //             Err(_) => format!("{}", line[span].truecolor(237, 135, 150)),
+        //             Ok(token) => match token {
+        //                 // Token::Int(_) | Token::Float(_) => {
+        //                 //     format!("{}", line[span].truecolor(245, 169, 127))
+        //                 // }
+        //                 // Token::Ident(_) => format!("{}", line[span].truecolor(138, 173, 244)),
+        //                 // Token::Plus
+        //                 // | Token::Minus
+        //                 // | Token::Asterisk
+        //                 // | Token::Slash
+        //                 // | Token::Percent
+        //                 // | Token::Caret
+        //                 // | Token::Exclamation => format!("{}", line[span].truecolor(125, 196, 228)),
+        //                 // Token::LParen | Token::RParen => {
+        //                 //     format!("{}", line[span].truecolor(238, 212, 159))
+        //                 // }
+        //                 // Token::Let => format!("{}", line[span].truecolor(198, 160, 246)),
+        //                 // Token::Equal => format!("{}", line[span].truecolor(125, 196, 228)),
+        //                 // _ => line[span].to_string(),
+        //             },
+        //         }
+        //     }
+        // });
 
-        highlighted_line.into()
+        // highlighted_line.into()
+        line.into()
     }
     fn highlight_char(
         &self,
@@ -89,7 +88,7 @@ impl SevaEditor {
             .build();
 
         let helper = RustyLineHelper {
-            validator: MatchingBracketValidator::new(),
+            // validator: MatchingBracketValidator::new(),
             hinter: HistoryHinter::new(),
             highlighter: SevaHighlighter,
         };

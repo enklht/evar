@@ -1,5 +1,3 @@
-use crate::lexer::Token;
-use chumsky::prelude::*;
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFile,
@@ -27,25 +25,25 @@ impl ErrorReporter {
         }
     }
 
-    pub fn report_error(&mut self, errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
-        let file = SimpleFile::new("<repl>", input);
+    // pub fn report_error(&mut self, errs: Vec<Rich<'_, Token<'_>>>, input: &str) {
+    //     let file = SimpleFile::new("<repl>", input);
 
-        for err in errs {
-            let mut labels = vec![
-                Label::primary((), err.span().into_range()).with_message(err.reason().to_string()),
-            ];
+    //     for err in errs {
+    //         let mut labels = vec![
+    //             Label::primary((), err.span().into_range()).with_message(err.reason().to_string()),
+    //         ];
 
-            labels.extend(err.contexts().map(|(label, span)| {
-                Label::secondary((), span.into_range())
-                    .with_message(format!("while partang this {}", label))
-            }));
+    //         labels.extend(err.contexts().map(|(label, span)| {
+    //             Label::secondary((), span.into_range())
+    //                 .with_message(format!("while partang this {}", label))
+    //         }));
 
-            let diagnostic = Diagnostic::error()
-                .with_message(err.reason().to_string())
-                .with_labels(labels);
+    //         let diagnostic = Diagnostic::error()
+    //             .with_message(err.reason().to_string())
+    //             .with_labels(labels);
 
-            emit(&mut self.writer.lock(), &self.config, &file, &diagnostic)
-                .expect("failed writing diagnostics");
-        }
-    }
+    //         emit(&mut self.writer.lock(), &self.config, &file, &diagnostic)
+    //             .expect("failed writing diagnostics");
+    //     }
+    // }
 }

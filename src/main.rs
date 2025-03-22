@@ -1,10 +1,7 @@
-use chumsky::{
-    input::{Input, Stream},
-    prelude::*,
-};
 use clap::Parser as ClapParser;
 use directories::ProjectDirs;
-use seva::{ErrorReporter, args::Args, create_context, lex, parser, readline::SevaEditor};
+use seva::{ErrorReporter, args::Args, create_context, parser, readline::SevaEditor};
+use winnow::Parser;
 
 fn main() {
     let Args {
@@ -40,14 +37,7 @@ fn main() {
             break;
         };
 
-        let token_iter = lex(&input);
-
-        let token_stream = Stream::from_iter(token_iter)
-            .map((input.len()..input.len()).into(), |(token, span)| {
-                (token, span.into())
-            });
-
-        match parser().parse(token_stream).into_result() {
+        match parser.parse(&input) {
             Ok(stmt) => {
                 if debug {
                     println!("{}", stmt)
@@ -57,7 +47,9 @@ fn main() {
                     Err(err) => eprintln!("{}", err),
                 }
             }
-            Err(errs) => reporter.report_error(errs, &input),
+            Err(e) => {
+                eprintln!("{}", e);
+            }
         }
     }
 

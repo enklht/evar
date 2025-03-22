@@ -1,202 +1,179 @@
 #[cfg(test)]
 mod test;
 
-use crate::{
-    lexer::Token,
-    models::{Expr, Stmt, operators::*},
+use crate::models::{Expr, Stmt, operators::*};
+
+use winnow::{
+    ascii::{alpha1, alphanumeric0, dec_int, float, multispace0, multispace1},
+    combinator::{
+        alt, cut_err, delimited, not, preceded, repeat, separated, separated_foldl1,
+        separated_foldr1, seq, terminated,
+    },
+    error::StrContext,
+    prelude::*,
+    token::one_of,
 };
 
-use chumsky::input::ValueInput;
-use chumsky::prelude::*;
-
-pub fn parser<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>>>>
-where
-    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
-{
-    function_definition()
-        .or(variable_definition())
-        .or(expression().map(Stmt::Expr))
+fn number(input: &mut &str) -> ModalResult<Expr> {
+    alt((
+        terminated(dec_int.map(Expr::Int), not(one_of(['.', 'e', 'E']))),
+        float.map(Expr::Float),
+    ))
+    .parse_next(input)
 }
 
-pub fn function_definition<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>>>>
-where
-    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
-{
-    let ident = select! {
-        Token::Ident(ident) => ident.to_string()
-    }
-    .padded_by(just(Token::Space).or_not())
-    .boxed()
-    .labelled("ident");
-
-    just(Token::Let)
-        .ignore_then(just(Token::Space))
-        .ignore_then(ident.clone())
-        .then_ignore(just(Token::LParen))
-        .then(ident.separated_by(just(Token::Comma)).collect())
-        .then_ignore(just(Token::RParen))
-        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
-        .then(expression())
-        .map(|((name, arg_names), body)| Stmt::DefFun {
-            name,
-            arg_names,
-            body,
-        })
-        .labelled("function definition")
-        .as_context()
+fn ident(input: &mut &str) -> ModalResult<String> {
+    (alpha1, alphanumeric0).take().parse_to().parse_next(input)
 }
 
-pub fn variable_definition<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<'a, Token<'a>>>>
-where
-    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
-{
-    just(Token::Let)
-        .ignore_then(just(Token::Space))
-        .ignore_then(select! {
-            Token::Ident(ident) => ident.to_string()
-        })
-        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
-        .then(expression())
-        .map(|(name, expr)| Stmt::DefVar { name, expr })
-        .labelled("variable definition")
-        .as_context()
-}
-
-pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token<'a>>>>
-where
-    I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
-{
-    let whitespace = just(Token::Space).or_not();
-
-    let number = just(Token::Minus)
-        .ignore_then(select! {
-            Token::Int(n) => Expr::Int(-n),
-            Token::Float(n) => Expr::Float(-n)
-        })
-        .or(select! {
-        Token::Int(n) => Expr::Int(n),
-        Token::Float(n) => Expr::Float(n)
-        })
-        .labelled("number")
-        .boxed();
-
-    recursive(|expr| {
-        let fn_call = select! {
-            Token::Ident(ident) => ident.to_string()
-        }
-        .labelled("ident")
-        .then_ignore(just(Token::LParen))
-        .then(expr.clone().separated_by(just(Token::Comma)).collect())
-        .then_ignore(just(Token::RParen))
+fn fn_call(input: &mut &str) -> ModalResult<Expr> {
+    (ident, delimited('(', separated(0.., expression, ","), ')'))
         .map(|(name, args)| Expr::FnCall { name, args })
-        .boxed();
+        .parse_next(input)
+}
 
-        let variable = select! {
-            Token::Ident(ident) => Expr::Variable(ident.to_string())
-        }
-        .labelled("ident");
+fn atomic(input: &mut &str) -> ModalResult<Expr> {
+    alt((
+        number,
+        fn_call,
+        ident.map(Expr::Variable),
+        '_'.map(|_| Expr::PrevAnswer),
+        delimited('(', expression, ')'),
+    ))
+    .parse_next(input)
+}
 
-        let atomic = choice((
-            number.clone(),
-            fn_call,
-            variable,
-            just(Token::Underscore).map(|_| Expr::PrevAnswer),
-            expr.clone()
-                .delimited_by(just(Token::LParen), just(Token::RParen)),
-        ))
-        .boxed();
+fn postfixed(input: &mut &str) -> ModalResult<Expr> {
+    alt((
+        terminated(atomic, '!').map(|expr| Expr::PostfixOp {
+            op: PostfixOp::Fac,
+            arg: Box::new(expr),
+        }),
+        atomic,
+    ))
+    .parse_next(input)
+}
 
-        let postfixed = atomic
-            .clone()
-            .then(choice((just(Token::Exclamation).to(PostfixOp::Fac),)))
-            .map(|(lhs, op)| Expr::PostfixOp {
-                op,
-                arg: Box::new(lhs),
-            })
-            .or(atomic.clone())
-            .boxed();
+fn prefixed(input: &mut &str) -> ModalResult<Expr> {
+    alt((
+        postfixed,
+        preceded('-', postfixed).map(|expr| Expr::PrefixOp {
+            op: PrefixOp::Neg,
+            arg: Box::new(expr),
+        }),
+    ))
+    .parse_next(input)
+}
 
-        let prefixed = postfixed
-            .clone()
-            .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
-                .then_ignore(whitespace.clone())
-                .then(postfixed.clone())
-                .map(|(op, rhs)| Expr::PrefixOp {
-                    op,
-                    arg: Box::new(rhs),
-                }))
-            .boxed();
+fn term(input: &mut &str) -> ModalResult<Expr> {
+    delimited(multispace0, prefixed, multispace0).parse_next(input)
+}
 
-        let term = prefixed
-            .padded_by(whitespace.clone())
-            .labelled("term")
-            .boxed();
+fn power(input: &mut &str) -> ModalResult<Expr> {
+    separated_foldr1(
+        term,
+        alt(("^".value(InfixOp::Pow), "**".value(InfixOp::Pow))),
+        |lhs, op, rhs| Expr::InfixOp {
+            op: op,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        },
+    )
+    .parse_next(input)
+}
 
-        let power = term
-            .clone()
-            .then(just(Token::Caret).to(InfixOp::Pow))
-            .repeated()
-            .foldr(term, |(lhs, op), rhs| Expr::InfixOp {
-                op,
-                lhs: Box::new(lhs),
+fn powers(input: &mut &str) -> ModalResult<Expr> {
+    (
+        power,
+        repeat(0.., preceded(not(alt(('-'.void(), number.void()))), power)),
+    )
+        .map(|(head, tail): (Expr, Vec<Expr>)| {
+            tail.into_iter().fold(head, |acc, rhs| Expr::InfixOp {
+                op: InfixOp::Mul,
+                lhs: Box::new(acc),
                 rhs: Box::new(rhs),
             })
-            .boxed();
+        })
+        .parse_next(input)
+}
 
-        let powers = power
-            .clone()
-            .foldl(
-                power
-                    .and_is(
-                        select! {
-                            Token::Minus | Token::Int(_) | Token::Float(_)
-                        }
-                        .not(),
-                    )
-                    .repeated(),
-                |lhs, rhs| Expr::InfixOp {
-                    op: InfixOp::Mul,
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                },
-            )
-            .boxed();
+fn product(input: &mut &str) -> ModalResult<Expr> {
+    separated_foldl1(
+        powers,
+        alt((
+            '*'.value(InfixOp::Mul),
+            '/'.value(InfixOp::Div),
+            '%'.value(InfixOp::Rem),
+        )),
+        |lhs, op, rhs| Expr::InfixOp {
+            op,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        },
+    )
+    .parse_next(input)
+}
 
-        let product = powers
-            .clone()
-            .foldl(
-                choice((
-                    just(Token::Asterisk).to(InfixOp::Mul),
-                    just(Token::Slash).to(InfixOp::Div),
-                    just(Token::Percent).to(InfixOp::Rem),
-                ))
-                .then(powers)
-                .repeated(),
-                |lhs, (op, rhs)| Expr::InfixOp {
-                    op,
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                },
-            )
-            .boxed();
+fn expression(input: &mut &str) -> ModalResult<Expr> {
+    separated_foldl1(
+        product,
+        alt(('+'.value(InfixOp::Add), '-'.value(InfixOp::Sub))),
+        |lhs, op, rhs| Expr::InfixOp {
+            op,
+            lhs: Box::new(lhs),
+            rhs: Box::new(rhs),
+        },
+    )
+    .parse_next(input)
+}
 
-        let sum = product
-            .clone()
-            .foldl(
-                choice((
-                    just(Token::Plus).to(InfixOp::Add),
-                    just(Token::Minus).to(InfixOp::Sub),
-                ))
-                .then(product)
-                .repeated(),
-                |lhs, (op, rhs)| Expr::InfixOp {
-                    op,
-                    lhs: Box::new(lhs),
-                    rhs: Box::new(rhs),
-                },
-            )
-            .boxed();
-
-        sum.labelled("expression").as_context()
+fn function_definition(input: &mut &str) -> ModalResult<Stmt> {
+    seq! (
+        _: "let",
+        _: multispace1,
+        ident.context(StrContext::Expected("ident".into())),
+        _: '(',
+        separated(0.., ident, delimited(multispace0, ",", multispace0)),
+        _: ')',
+        _: multispace0,
+        _: '=',
+        _: multispace0,
+        expression.context(StrContext::Expected("expression".into()))
+    )
+    .map(|(name, arg_names, body)| Stmt::DefFun {
+        name,
+        arg_names,
+        body,
     })
+    .parse_next(input)
+}
+
+fn variable_definition(input: &mut &str) -> ModalResult<Stmt> {
+    preceded(
+        "let",
+        cut_err(seq! (
+            _: multispace0,
+            ident.context(StrContext::Expected("ident".into())),
+            _: multispace0,
+            _: '=',
+            _: multispace0,
+            expression.context(StrContext::Expected("expression".into()))
+        )),
+    )
+    .context(StrContext::Label("variable definition".into()))
+    .map(|(name, expr)| Stmt::DefVar { name, expr })
+    .parse_next(input)
+}
+
+pub fn parser(input: &mut &str) -> ModalResult<Stmt> {
+    delimited(
+        multispace0,
+        alt((
+            function_definition,
+            variable_definition,
+            expression.map(Stmt::Expr),
+        )),
+        multispace0,
+    )
+    .parse_next(input)
 }
