@@ -64,17 +64,12 @@ pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
-    let number = just(Token::Minus)
-        .ignore_then(select! {
-            Token::Int(n) => Expr::Int(-n),
-            Token::Float(n) => Expr::Float(-n)
-        })
-        .or(select! {
-            Token::Int(n) => Expr::Int(n),
-            Token::Float(n) => Expr::Float(n)
-        })
-        .labelled("number")
-        .boxed();
+    let number = select! {
+        Token::Int(n) => Expr::Int(n),
+        Token::Float(n) => Expr::Float(n)
+    }
+    .labelled("number")
+    .boxed();
 
     recursive(|expr| {
         let fn_call = select! {
@@ -109,33 +104,31 @@ where
                 op,
                 arg: Box::new(lhs),
             })
-            .or(atomic.clone())
+            .or(atomic)
             .boxed();
 
-        let prefixed = postfixed
-            .clone()
-            .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
-                .then(postfixed.clone())
-                .map(|(op, rhs)| Expr::PrefixOp {
-                    op,
-                    arg: Box::new(rhs),
-                }))
-            .boxed();
-
-        let term = prefixed.labelled("term").boxed();
-
-        let power = term
+        let power = postfixed
             .clone()
             .then(just(Token::Caret).to(InfixOp::Pow))
             .repeated()
-            .foldr(term, |(lhs, op), rhs| Expr::InfixOp {
+            .foldr(postfixed, |(lhs, op), rhs| Expr::InfixOp {
                 op,
                 lhs: Box::new(lhs),
                 rhs: Box::new(rhs),
             })
             .boxed();
 
-        let powers = power
+        let term = power
+            .clone()
+            .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
+                .then(power.clone())
+                .map(|(op, rhs)| Expr::PrefixOp {
+                    op,
+                    arg: Box::new(rhs),
+                }))
+            .boxed();
+
+        let powers = term
             .clone()
             .foldl(
                 any()
@@ -143,7 +136,7 @@ where
                         !matches!(token, Token::Minus | Token::Int(_) | Token::Float(_))
                     })
                     .rewind()
-                    .ignore_then(power)
+                    .ignore_then(term)
                     .repeated(),
                 |lhs, rhs| Expr::InfixOp {
                     op: InfixOp::Mul,

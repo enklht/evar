@@ -65,12 +65,6 @@ fn number() {
     assert_eq!(parse_expr("1e-3"), Ok(Float(1e-3)));
     assert_eq!(parse_expr("2.5e2"), Ok(Float(2.5e2)));
     assert_eq!(parse_expr("2.5e-2"), Ok(Float(2.5e-2)));
-    assert_eq!(parse_expr("-1"), Ok(Int(-1)));
-    assert_eq!(parse_expr("-2.5"), Ok(Float(-2.5)));
-    assert_eq!(parse_expr("-1e3"), Ok(Float(-1e3)));
-    assert_eq!(parse_expr("-1e-3"), Ok(Float(-1e-3)));
-    assert_eq!(parse_expr("-2.5e2"), Ok(Float(-2.5e2)));
-    assert_eq!(parse_expr("-2.5e-2"), Ok(Float(-2.5e-2)));
 
     // Tests that should fail
     assert!(parse_expr("1..2").is_err());
@@ -112,7 +106,7 @@ fn basic_ops() {
     );
     assert_eq!(
         parse_expr("-1e3 + 2.5"),
-        Ok(binop!(Add, Float(-1e3), Float(2.5)))
+        Ok(binop!(Add, preop!(Neg, Float(1e3)), Float(2.5)))
     );
     assert_eq!(
         parse_expr("2.5e2 % 1e3"),
@@ -184,7 +178,7 @@ fn basic_ops() {
         Ok(binop!(Add, postop!(Fac, Int(3)), Int(4)))
     );
     assert_eq!(parse_expr("-(3!)"), Ok(preop!(Neg, postop!(Fac, Int(3)))));
-    assert_eq!(parse_expr("-3!"), Ok(postop!(Fac, Int(-3))));
+    assert_eq!(parse_expr("-3!"), Ok(preop!(Neg, postop!(Fac, Int(3)))));
     assert_eq!(
         parse_expr("2 ^ 3!"),
         Ok(binop!(Pow, Int(2), postop!(Fac, Int(3))))
@@ -193,20 +187,31 @@ fn basic_ops() {
         parse_expr("-(2 ^ 3)"),
         Ok(preop!(Neg, binop!(Pow, Int(2), Int(3))))
     );
-    assert_eq!(parse_expr("-2^3"), Ok(binop!(Pow, Int(-2), Int(3))));
-    assert_eq!(parse_expr("2 ^ -3"), Ok(binop!(Pow, Int(2), Int(-3))));
     assert_eq!(
-        parse_expr("-(2 ^ -3)"),
-        Ok(preop!(Neg, binop!(Pow, Int(2), Int(-3))))
+        parse_expr("-2^3"),
+        Ok(preop!(Neg, binop!(Pow, Int(2), Int(3))))
     );
-    assert_eq!(parse_expr("-(-3)"), Ok(preop!(Neg, Int(-3))));
-    assert_eq!(parse_expr("-2 (-3)"), Ok(binop!(Mul, Int(-2), Int(-3))));
+    assert_eq!(
+        parse_expr("2 ^ (-3)"),
+        Ok(binop!(Pow, Int(2), preop!(Neg, Int(3))))
+    );
+    assert_eq!(
+        parse_expr("-(2 ^ (-3))"),
+        Ok(preop!(Neg, binop!(Pow, Int(2), preop!(Neg, Int(3)))))
+    );
+    assert_eq!(parse_expr("-(-3)"), Ok(preop!(Neg, preop!(Neg, Int(3)))));
+    assert_eq!(
+        parse_expr("-2 (-3)"),
+        Ok(binop!(Mul, preop!(Neg, Int(2)), preop!(Neg, Int(3))))
+    );
     assert_eq!(
         parse_expr("(5 + 3)  (-3)"),
-        Ok(binop!(Mul, binop!(Add, Int(5), Int(3)), Int(-3)))
+        Ok(binop!(
+            Mul,
+            binop!(Add, Int(5), Int(3)),
+            preop!(Neg, Int(3))
+        ))
     );
-    assert_eq!(parse_expr("--1"), Ok(preop!(Neg, Int(-1))));
-    assert_eq!(parse_expr("--3"), Ok(preop!(Neg, Int(-3))));
 
     // Failing tests
     assert!(parse_expr("2 // 3").is_err());
@@ -226,6 +231,8 @@ fn basic_ops() {
     assert!(parse_expr("2 * (3 + 4) -").is_err());
     assert!(parse_expr("2 * (3 + 4) - 5 %").is_err());
     assert!(parse_expr("2 * (3 + 4) - 5 % 6)").is_err());
+    assert!(parse_expr("--1").is_err());
+    assert!(parse_expr("--3").is_err());
 }
 
 #[test]
