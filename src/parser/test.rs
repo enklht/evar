@@ -371,6 +371,8 @@ fn mathematical_notations() {
     assert!(parse_expr("2 (3 + 4) -").is_err());
     assert!(parse_expr("2 (3 + 4) - 5 %").is_err());
     assert!(parse_expr("2 (3 + 4) - 5 % 6)").is_err());
+    assert!(parse_expr("2^2 3^3 4^4").is_err());
+    assert!(parse_expr("2 ^ 2 3 ^ 3  4 ^ 4").is_err());
 }
 
 #[test]

@@ -50,11 +50,16 @@ pub fn variable_definition<'a, I>() -> impl Parser<'a, I, Stmt, extra::Err<Rich<
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
+    let ident = select! {
+        Token::Ident(ident) => ident.to_string()
+    }
+    .padded_by(just(Token::Space).or_not())
+    .boxed()
+    .labelled("ident");
+
     just(Token::Let)
         .ignore_then(just(Token::Space))
-        .ignore_then(select! {
-            Token::Ident(ident) => ident.to_string()
-        })
+        .ignore_then(ident)
         .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
         .then(expression())
         .map(|(name, expr)| Stmt::DefVar { name, expr })
@@ -146,14 +151,13 @@ where
         let powers = power
             .clone()
             .foldl(
-                power
-                    .and_is(
-                        select! {
+                select! {
                             Token::Minus | Token::Int(_) | Token::Float(_)
-                        }
-                        .not(),
-                    )
-                    .repeated(),
+                }
+                .not()
+                .rewind()
+                .ignore_then(power)
+                .repeated(),
                 |lhs, rhs| Expr::InfixOp {
                     op: InfixOp::Mul,
                     lhs: Box::new(lhs),

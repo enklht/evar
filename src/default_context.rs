@@ -30,6 +30,9 @@ pub fn create_context(angle_unit: &AngleUnit) -> Context {
             unary_fn!("asin", |x| f64::from(&x[0]).asin().into()),
             unary_fn!("acos", |x| f64::from(&x[0]).acos().into()),
             unary_fn!("atan", |x| f64::from(&x[0]).atan().into()),
+            unary_fn!("asec", |x| f64::from(&x[0]).recip().asin().into()),
+            unary_fn!("acsc", |x| f64::from(&x[0]).recip().acos().into()),
+            unary_fn!("acot", |x| f64::from(&x[0]).recip().atan().into()),
         ],
         AngleUnit::Degree => [
             unary_fn!("sin", |x| f64::from(&x[0]).to_radians().sin().into()),
@@ -41,6 +44,9 @@ pub fn create_context(angle_unit: &AngleUnit) -> Context {
             unary_fn!("asin", |x| f64::from(&x[0]).asin().to_degrees().into()),
             unary_fn!("acos", |x| f64::from(&x[0]).acos().to_degrees().into()),
             unary_fn!("atan", |x| f64::from(&x[0]).atan().to_degrees().into()),
+            unary_fn!("asec", |x| f64::from(&x[0]).recip().asin().to_degrees().into()),
+            unary_fn!("acsc", |x| f64::from(&x[0]).recip().acos().to_degrees().into()),
+            unary_fn!("acot", |x| f64::from(&x[0]).recip().atan().to_degrees().into()),
         ],
     });
 
