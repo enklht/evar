@@ -146,7 +146,14 @@ where
         let powers = power
             .clone()
             .foldl(
-                power.and_is(just(Token::Minus).not()).repeated(),
+                power
+                    .and_is(
+                        select! {
+                            Token::Minus | Token::Int(_) | Token::Float(_)
+                        }
+                        .not(),
+                    )
+                    .repeated(),
                 |lhs, rhs| Expr::InfixOp {
                     op: InfixOp::Mul,
                     lhs: Box::new(lhs),
