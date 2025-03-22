@@ -29,8 +29,8 @@ pub enum Expr {
 impl std::fmt::Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expr::Int(n) => write!(f, "{}", n),
-            Expr::Float(n) => write!(f, "{}", n),
+            Expr::Int(n) => write!(f, "(int: {})", n),
+            Expr::Float(n) => write!(f, "(float: {})", n),
             Expr::Variable(n) => write!(f, "{}", n),
             Expr::FnCall { name, args } => {
                 let args_str = args
@@ -94,7 +94,7 @@ impl Expr {
                     .get_variable(name)
                     .ok_or(EvalError::VariableNotFound(name.to_string()))?
                     .get();
-                Ok(variable.into())
+                Ok(variable)
             }
             Expr::PrevAnswer => context.get_prev_answer().ok_or(EvalError::NoHistory),
         }
@@ -139,9 +139,9 @@ mod tests {
         let mut context = create_context(&Radian);
         let expr = Expr::PostfixOp {
             op: PostfixOp::Fac,
-            arg: Box::new(Expr::Float(5.0)),
+            arg: Box::new(Expr::Int(5)),
         };
-        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(120.0));
+        assert_eq!(expr.eval(&mut context,).unwrap(), Value::from(120));
     }
 
     #[test]
