@@ -193,7 +193,6 @@ fn basic_ops() {
         parse_expr("-(2 ^ 3)"),
         Ok(preop!(Neg, binop!(Pow, Int(2), Int(3))))
     );
-    assert_eq!(parse_expr("2 ** 3"), Ok(binop!(Pow, Int(2), Int(3))));
     assert_eq!(parse_expr("-2^3"), Ok(binop!(Pow, Int(-2), Int(3))));
     assert_eq!(parse_expr("2 ^ -3"), Ok(binop!(Pow, Int(2), Int(-3))));
     assert_eq!(
@@ -213,6 +212,7 @@ fn basic_ops() {
     assert!(parse_expr("2 // 3").is_err());
     assert!(parse_expr("2 %% 3").is_err());
     assert!(parse_expr("2 ^^ 3").is_err());
+    assert!(parse_expr("2 ** 3").is_err());
     assert!(parse_expr("2 +* 3").is_err());
     assert!(parse_expr("2 *+ 3").is_err());
     assert!(parse_expr("2 + 3 *").is_err());

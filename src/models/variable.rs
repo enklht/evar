@@ -16,9 +16,6 @@ impl Variable {
     }
 
     pub fn is_external(&self) -> bool {
-        match self {
-            Variable::External(_) => true,
-            Variable::Internal(_) => false,
-        }
+        matches!(self, Variable::External(_))
     }
 }

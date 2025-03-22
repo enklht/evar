@@ -17,26 +17,22 @@ impl Function {
         }))
     }
 
-    pub fn new_external(arity: usize, body: fn(Vec<Value>) -> Value) -> Function {
+    pub fn new_external(
+        arity: usize,
+        body: fn(Vec<Value>) -> Result<Value, EvalError>,
+    ) -> Function {
         Function(Rc::new(FunctionInner::External { arity, body }))
     }
 
     pub fn is_external(&self) -> bool {
-        match &*self.0 {
-            FunctionInner::External { arity: _, body: _ } => true,
-            FunctionInner::Internal {
-                arity: _,
-                arg_names: _,
-                body: _,
-            } => false,
-        }
+        matches!(&*self.0, FunctionInner::External { arity: _, body: _ })
     }
 }
 
-pub enum FunctionInner {
+enum FunctionInner {
     External {
         arity: usize,
-        body: fn(Vec<Value>) -> Value,
+        body: fn(Vec<Value>) -> Result<Value, EvalError>,
     },
     Internal {
         arity: usize,
@@ -50,12 +46,9 @@ impl FunctionInner {
         match self {
             FunctionInner::External { arity, body } => {
                 if args.len() == *arity {
-                    Ok(body(args))
+                    body(args)
                 } else {
-                    Err(EvalError::InvalidNumberOfArguments {
-                        expected: *arity,
-                        found: args.len(),
-                    })
+                    Err(EvalError::InvalidNumberOfArguments(*arity, args.len()))
                 }
             }
             FunctionInner::Internal {
@@ -71,10 +64,7 @@ impl FunctionInner {
                     }
                     body.eval(context)
                 } else {
-                    Err(EvalError::InvalidNumberOfArguments {
-                        expected: *arity,
-                        found: args.len(),
-                    })
+                    Err(EvalError::InvalidNumberOfArguments(*arity, args.len()))
                 }
             }
         }

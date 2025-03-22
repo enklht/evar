@@ -23,6 +23,17 @@ impl Value {
             Null => {}
         }
     }
+
+    pub fn to_float(&self) -> Result<f64, EvalError> {
+        match &*self.0.clone() {
+            ValueInner::Int(x) => Ok(f64::from(*x)),
+            ValueInner::Float(x) => Ok(*x),
+            v => Err(EvalError::InvalidConversion(
+                v.type_name(),
+                String::from("Float"),
+            )),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -52,16 +63,6 @@ impl From<i32> for Value {
 impl From<f64> for Value {
     fn from(value: f64) -> Self {
         Value(Rc::new(ValueInner::Float(value)))
-    }
-}
-
-impl From<&Value> for f64 {
-    fn from(value: &Value) -> f64 {
-        match &*value.0.clone() {
-            ValueInner::Int(x) => f64::from(*x),
-            ValueInner::Float(x) => *x,
-            _ => todo!(),
-        }
     }
 }
 
@@ -177,7 +178,9 @@ impl Value {
             Int(n) => {
                 let n = *n;
                 if n < 0 {
-                    return Err(EvalError::MathDomain);
+                    return Err(EvalError::MathDomain(
+                        "the argument must be a non-negative integer".to_string(),
+                    ));
                 }
                 let result = (1..=n).try_fold(1_i32, |acc, x| acc.checked_mul(x));
                 match result {
@@ -185,10 +188,7 @@ impl Value {
                     None => Err(EvalError::Overflow),
                 }
             }
-            v => Err(EvalError::TypeError {
-                expected: String::from("Integer"),
-                found: v.type_name(),
-            }),
+            v => Err(EvalError::TypeError(String::from("Integer"), v.type_name())),
         }
     }
 

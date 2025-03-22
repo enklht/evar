@@ -31,7 +31,6 @@ pub enum Token<'a> {
     #[token("%")]
     Percent,
     #[token("^")]
-    #[token("**")]
     Caret,
     #[token("!")]
     Exclamation,
@@ -45,14 +44,14 @@ pub enum Token<'a> {
     #[token("_")]
     Underscore,
 
-    #[regex(r"[[:alpha:]][[:alnum:]]*")]
+    #[regex(r"[[:alpha:]][[:alnum:]_]*")]
     Ident(&'a str),
 }
 
 impl std::fmt::Display for Token<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Error => write!(f, "unknown symbol"),
+            Self::Error => write!(f, "<unknown symbol>"),
             Self::Space => write!(f, " "),
             Self::Int(s) => write!(f, "{}", s),
             Self::Float(s) => write!(f, "{}", s),

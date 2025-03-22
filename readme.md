@@ -10,7 +10,7 @@ Welcome to Seva, a feature-rich CLI calculator REPL! My goal was to create a mod
 
   Supported functions:
   - **Trigonometric Functions**: `sin`, `cos`, `tan`, `sec`, `csc`, `cot`
-  - **Inverse Trigonometric Functions**: `asin`, `acos`, `atan`, `asec`, `acsc`, `acot`
+  - **Inverse Trigonometric Functions**: `asin`, `acos`, `atan`
   - **Hyperbolic Functions**: `sinh`, `cosh`, `tanh`
   - **Exponential and Logarithmic Functions**: `sqrt`, `exp`, `exp2`, `ln`, `log2`, `log10`, `log`
   - **Angle Conversion Functions**: `rad`, `deg`

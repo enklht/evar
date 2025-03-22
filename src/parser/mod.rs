@@ -70,8 +70,8 @@ where
             Token::Float(n) => Expr::Float(-n)
         })
         .or(select! {
-        Token::Int(n) => Expr::Int(n),
-        Token::Float(n) => Expr::Float(n)
+            Token::Int(n) => Expr::Int(n),
+            Token::Float(n) => Expr::Float(n)
         })
         .labelled("number")
         .boxed();

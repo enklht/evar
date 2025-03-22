@@ -6,17 +6,20 @@ pub enum EvalError {
     #[error("division by zero")]
     DivisionByZero,
 
-    #[error("domain error")]
-    MathDomain,
+    #[error("domain error: {0}")]
+    MathDomain(String),
 
     #[error("overflow")]
     Overflow,
 
-    #[error("type error (expected: {expected}, found: {found})")]
-    TypeError { expected: String, found: String },
+    #[error("convertion from {0} to {1} is not supported")]
+    InvalidConversion(String, String),
 
-    #[error("invalid number of arguments (expected: {expected}, found: {found})")]
-    InvalidNumberOfArguments { expected: usize, found: usize },
+    #[error("type error (expected: {0}, found: {1})")]
+    TypeError(String, String),
+
+    #[error("invalid number of arguments (expected: {0}, found: {1})")]
+    InvalidNumberOfArguments(usize, usize),
 
     #[error("function not found: {0}")]
     FunctionNotFound(String),
