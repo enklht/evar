@@ -14,4 +14,11 @@ impl Variable {
             Internal(n) => n.clone(),
         }
     }
+
+    pub fn is_external(&self) -> bool {
+        match self {
+            Variable::External(_) => true,
+            Variable::Internal(_) => false,
+        }
+    }
 }

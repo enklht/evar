@@ -106,3 +106,81 @@ impl VariableContext {
         Some(value)
     }
 }
+
+impl Context {
+    pub fn print_help(&self) {
+        println!("intrinsic functions:");
+        let mut entries = self
+            .functions
+            .iter()
+            .filter(|e| e.1.is_external())
+            .collect::<Vec<_>>();
+        entries.sort_by_key(|e| e.0);
+
+        for (i, key) in entries.iter().map(|e| e.0).enumerate() {
+            print!("{}\t", key);
+            if i % 8 == 4 {
+                println!()
+            }
+        }
+        println!("\n");
+
+        self.variables.as_ref().unwrap().print_constants();
+
+        println!("user defined functions:");
+        let mut entries = self
+            .functions
+            .iter()
+            .filter(|e| !e.1.is_external())
+            .collect::<Vec<_>>();
+        entries.sort_by_key(|e| e.0);
+
+        for (i, key) in entries.iter().map(|e| e.0).enumerate() {
+            print!("{}\t", key);
+            if i % 8 == 4 {
+                println!()
+            }
+        }
+        println!("\n");
+
+        self.variables.as_ref().unwrap().print_variables();
+    }
+}
+
+impl VariableContext {
+    fn print_constants(&self) {
+        println!("constants:");
+        let mut entries = self
+            .variables
+            .iter()
+            .filter(|e| e.1.is_external())
+            .collect::<Vec<_>>();
+        entries.sort_by_key(|e| e.0);
+
+        for (i, key) in entries.iter().map(|e| e.0).enumerate() {
+            print!("{}\t", key);
+            if i % 8 == 4 {
+                println!()
+            }
+        }
+        println!("\n");
+    }
+
+    fn print_variables(&self) {
+        println!("variables:");
+        let mut entries = self
+            .variables
+            .iter()
+            .filter(|e| !e.1.is_external())
+            .collect::<Vec<_>>();
+        entries.sort_by_key(|e| e.0);
+
+        for (i, key) in entries.iter().map(|e| e.0).enumerate() {
+            print!("{}\t", key);
+            if i % 8 == 4 {
+                println!()
+            }
+        }
+        println!("");
+    }
+}

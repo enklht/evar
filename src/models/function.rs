@@ -20,6 +20,17 @@ impl Function {
     pub fn new_external(arity: usize, body: fn(Vec<Value>) -> Value) -> Function {
         Function(Rc::new(FunctionInner::External { arity, body }))
     }
+
+    pub fn is_external(&self) -> bool {
+        match &*self.0 {
+            FunctionInner::External { arity: _, body: _ } => true,
+            FunctionInner::Internal {
+                arity: _,
+                arg_names: _,
+                body: _,
+            } => false,
+        }
+    }
 }
 
 pub enum FunctionInner {

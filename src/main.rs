@@ -41,6 +41,11 @@ fn main() {
             break;
         };
 
+        if input == "help" {
+            context.print_help();
+            continue;
+        }
+
         let token_iter = lex(&input);
 
         let token_stream = Stream::from_iter(token_iter)
