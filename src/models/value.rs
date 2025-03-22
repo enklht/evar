@@ -1,6 +1,5 @@
-use std::rc::Rc;
-
 use super::EvalError;
+use std::rc::Rc;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Value(Rc<ValueInner>);
@@ -8,6 +7,21 @@ pub struct Value(Rc<ValueInner>);
 impl Value {
     pub fn null() -> Value {
         Value(Rc::new(ValueInner::Null))
+    }
+
+    pub fn print(&self, fix: Option<usize>) {
+        use ValueInner::*;
+        match &*self.0 {
+            Int(n) => println!("{}", n),
+            Float(n) => {
+                if let Some(fix) = fix {
+                    println!("{:.*}", fix as usize, n);
+                } else {
+                    println!("{}", n);
+                }
+            }
+            Null => {}
+        }
     }
 }
 

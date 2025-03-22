@@ -8,6 +8,7 @@ use seva::{ErrorReporter, args::Args, create_context, lex, parser, readline::Sev
 
 fn main() {
     let Args {
+        fix,
         debug,
         no_color,
         angle_unit,
@@ -53,7 +54,7 @@ fn main() {
                     println!("{}", stmt)
                 };
                 match stmt.eval(&mut context) {
-                    Ok(out) => println!("{:?}", out),
+                    Ok(out) => out.print(fix),
                     Err(err) => eprintln!("{}", err),
                 }
             }
