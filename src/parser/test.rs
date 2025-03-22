@@ -35,39 +35,27 @@ fn parse_expr(input: &str) -> Result<Expr, String> {
     use chumsky::input::Stream;
     use logos::Logos;
 
-    let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
-        Ok(tok) => (tok, span.into()),
-        Err(()) => (Token::Error, span.into()),
-    });
+    let token_iter = Token::lexer(input)
+        .spanned()
+        .map(|(tok, span)| match tok {
+            Ok(tok) => (tok, span.into()),
+            Err(()) => (Token::Error, span.into()),
+        })
+        .filter(|(tok, _)| match tok {
+            Token::Space => false,
+            _ => true,
+        });
 
     let token_stream = Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
 
-    expression().parse(token_stream).into_result().map_err(|_| {
-        format!(
-            "failed to parse {:?}",
-            token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
-        )
-    })
+    expression()
+        .parse(token_stream)
+        .into_result()
+        .map_err(|e| format!("parse error {:?}", e))
 }
 
 fn parse_stmt(input: &str) -> Result<Stmt, String> {
-    use crate::models::Token;
-    use chumsky::input::Stream;
-    use logos::Logos;
-
-    let token_iter = Token::lexer(input).spanned().map(|(tok, span)| match tok {
-        Ok(tok) => (tok, span.into()),
-        Err(()) => (Token::Error, span.into()),
-    });
-
-    let token_stream = Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
-
-    parser().parse(token_stream).into_result().map_err(|_| {
-        format!(
-            "failed to parse {:?}",
-            token_iter.map(|(tok, _span)| tok).collect::<Vec<_>>()
-        )
-    })
+    crate::lex_and_parse(input).map_err(|e| format!("parse error {:?}", e))
 }
 
 #[test]
@@ -284,6 +272,16 @@ fn function_calls() {
             args: vec![Float(2.5), Float(2.5)],
         })
     );
+    assert_eq!(
+        parse_expr("log(1, 10) !"),
+        Ok(postop!(
+            Fac,
+            Expr::FnCall {
+                name: String::from("log"),
+                args: vec![Int(1), Int(10)],
+            }
+        ))
+    );
 
     // Failing tests for calls
     assert!(parse_expr("log(1, )").is_err()); // Missing second argument with trailing comma
@@ -295,7 +293,6 @@ fn function_calls() {
     assert!(parse_expr("log(1, (10)").is_err()); // Unmatched parentheses
     assert!(parse_expr("log(1, 10))").is_err()); // Extra closing parenthesis
     assert!(parse_expr("log(1, 10) +").is_err()); // Trailing operator
-    assert!(parse_expr("log(1, 10) !").is_err()); // Trailing operator
 }
 
 #[test]
