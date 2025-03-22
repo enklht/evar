@@ -1,10 +1,7 @@
 #[cfg(test)]
 mod test;
 
-use crate::{
-    lexer::Token,
-    models::{Expr, Stmt, operators::*},
-};
+use crate::models::{Expr, Stmt, Token, operators::*};
 
 use chumsky::input::ValueInput;
 use chumsky::prelude::*;
@@ -25,17 +22,15 @@ where
     let ident = select! {
         Token::Ident(ident) => ident.to_string()
     }
-    .padded_by(just(Token::Space).or_not())
     .boxed()
     .labelled("ident");
 
     just(Token::Let)
-        .ignore_then(just(Token::Space))
         .ignore_then(ident.clone())
         .then_ignore(just(Token::LParen))
         .then(ident.separated_by(just(Token::Comma)).collect())
         .then_ignore(just(Token::RParen))
-        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
+        .then_ignore(just(Token::Equal))
         .then(expression())
         .map(|((name, arg_names), body)| Stmt::DefFun {
             name,
@@ -53,14 +48,12 @@ where
     let ident = select! {
         Token::Ident(ident) => ident.to_string()
     }
-    .padded_by(just(Token::Space).or_not())
     .boxed()
     .labelled("ident");
 
     just(Token::Let)
-        .ignore_then(just(Token::Space))
         .ignore_then(ident)
-        .then_ignore(just(Token::Equal).padded_by(just(Token::Space).or_not()))
+        .then_ignore(just(Token::Equal))
         .then(expression())
         .map(|(name, expr)| Stmt::DefVar { name, expr })
         .labelled("variable definition")
@@ -71,8 +64,6 @@ pub fn expression<'a, I>() -> impl Parser<'a, I, Expr, extra::Err<Rich<'a, Token
 where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
-    let whitespace = just(Token::Space).or_not();
-
     let number = just(Token::Minus)
         .ignore_then(select! {
             Token::Int(n) => Expr::Int(-n),
@@ -124,7 +115,6 @@ where
         let prefixed = postfixed
             .clone()
             .or(choice((just(Token::Minus).to(PrefixOp::Neg),))
-                .then_ignore(whitespace.clone())
                 .then(postfixed.clone())
                 .map(|(op, rhs)| Expr::PrefixOp {
                     op,
@@ -132,10 +122,7 @@ where
                 }))
             .boxed();
 
-        let term = prefixed
-            .padded_by(whitespace.clone())
-            .labelled("term")
-            .boxed();
+        let term = prefixed.labelled("term").boxed();
 
         let power = term
             .clone()

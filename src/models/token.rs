@@ -15,7 +15,7 @@ pub enum Token<'a> {
     #[regex(r"\d+[eE][-+]?\d+", |lex| lex.slice().parse::<f64>().unwrap())]
     Float(f64),
 
-    #[token("let")]
+    #[token("let ")]
     Let,
     #[token("=")]
     Equal,

@@ -1,4 +1,4 @@
-use crate::lexer::Token;
+use crate::models::Token;
 use chumsky::prelude::*;
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},

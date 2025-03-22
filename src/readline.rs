@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use crate::lexer::Token;
+use crate::models::Token;
 use colored::Colorize;
 use logos::Logos;
 use rustyline::{

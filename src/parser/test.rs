@@ -31,7 +31,7 @@ macro_rules! binop {
 }
 
 fn parse_expr(input: &str) -> Result<Expr, String> {
-    use crate::lexer::Token;
+    use crate::models::Token;
     use chumsky::input::Stream;
     use logos::Logos;
 
@@ -51,7 +51,7 @@ fn parse_expr(input: &str) -> Result<Expr, String> {
 }
 
 fn parse_stmt(input: &str) -> Result<Stmt, String> {
-    use crate::lexer::Token;
+    use crate::models::Token;
     use chumsky::input::Stream;
     use logos::Logos;
 
