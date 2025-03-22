@@ -1,8 +1,14 @@
 [package]
   name = "seva"
   version = "0.1.0"
+  authors = ["enklht"]
   edition = "2024"
-  description = "Simple math calculator inspired by eva"
+  repository = "https://github.com/enklht/seva"
+  description = "Modern ergonomic math calculator inspired by eva"
+  readme = "./readme.md"
+  keywords = ["calculator", "repl", "math", "cli", "bc"]
+  categories = ["command-line-interface", "science"]
+  license = "MIT"
 
 [dependencies]
   chumsky = { version = "1.0.0-alpha.8", default-features = false, features = [
@@ -11,7 +17,7 @@
   clap = { version = "4.5.32", features = ["derive"] }
   codespan-reporting = "0.11.1"
   colored = "3.0.0"
-directories = "6.0.0"
+  directories = "6.0.0"
   logos = "0.15.0"
   rustyline = { version = "15.0.0", features = ["derive"] }
   thiserror = "2.0.12"
