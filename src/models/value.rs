@@ -15,7 +15,7 @@ impl Value {
             Int(n) => println!("{}", n),
             Float(n) => {
                 if let Some(fix) = fix {
-                    println!("{:.*}", fix as usize, n);
+                    println!("{:.*}", fix, n);
                 } else {
                     println!("{}", n);
                 }

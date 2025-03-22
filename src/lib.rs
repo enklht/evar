@@ -17,10 +17,7 @@ use models::Stmt;
 use models::Token;
 
 pub fn lex_and_parse(input: &str) -> Result<Stmt, Vec<Rich<'_, Token<'_>>>> {
-    let token_iter = models::token::lex(input).filter(|token| match token {
-        (Token::Space, _) => false,
-        _ => true,
-    });
+    let token_iter = models::token::lex(input).filter(|token| !matches!(token, (Token::Space, _)));
 
     let token_stream = Stream::from_iter(token_iter)
         .map((input.len()..input.len()).into(), |(token, span)| {

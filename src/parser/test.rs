@@ -41,10 +41,7 @@ fn parse_expr(input: &str) -> Result<Expr, String> {
             Ok(tok) => (tok, span.into()),
             Err(()) => (Token::Error, span.into()),
         })
-        .filter(|(tok, _)| match tok {
-            Token::Space => false,
-            _ => true,
-        });
+        .filter(|(tok, _)| !matches!(tok, Token::Space));
 
     let token_stream = Stream::from_iter(token_iter.clone()).map((0..input.len()).into(), |x| x);
 

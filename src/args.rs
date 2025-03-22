@@ -37,6 +37,6 @@ fn fix_in_range(s: &str) -> Result<Option<usize>, String> {
     if (0..64).contains(&fix) {
         Ok(Some(fix))
     } else {
-        Err(format!("fix must be in range 0-63"))
+        Err(String::from("fix must be in range 0-63"))
     }
 }

@@ -119,7 +119,7 @@ impl Context {
 
         for (i, key) in entries.iter().map(|e| e.0).enumerate() {
             print!("{}\t", key);
-            if i % 8 == 4 {
+            if i % 8 == 7 {
                 println!()
             }
         }
@@ -137,7 +137,7 @@ impl Context {
 
         for (i, key) in entries.iter().map(|e| e.0).enumerate() {
             print!("{}\t", key);
-            if i % 8 == 4 {
+            if i % 8 == 7 {
                 println!()
             }
         }
@@ -159,7 +159,7 @@ impl VariableContext {
 
         for (i, key) in entries.iter().map(|e| e.0).enumerate() {
             print!("{}\t", key);
-            if i % 8 == 4 {
+            if i % 8 == 7 {
                 println!()
             }
         }
@@ -177,10 +177,10 @@ impl VariableContext {
 
         for (i, key) in entries.iter().map(|e| e.0).enumerate() {
             print!("{}\t", key);
-            if i % 8 == 4 {
+            if i % 8 == 7 {
                 println!()
             }
         }
-        println!("");
+        println!();
     }
 }

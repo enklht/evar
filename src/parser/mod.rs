@@ -46,7 +46,7 @@ where
     I: ValueInput<'a, Token = Token<'a>, Span = SimpleSpan>,
 {
     let ident = select! {
-        Token::Ident(ident) => ident.to_string()
+        Token::Ident(ident) => String::from(ident)
     }
     .boxed()
     .labelled("ident");
@@ -138,13 +138,13 @@ where
         let powers = power
             .clone()
             .foldl(
-                select! {
-                            Token::Minus | Token::Int(_) | Token::Float(_)
-                }
-                .not()
-                .rewind()
-                .ignore_then(power)
-                .repeated(),
+                any()
+                    .filter(|token| {
+                        !matches!(token, Token::Minus | Token::Int(_) | Token::Float(_))
+                    })
+                    .rewind()
+                    .ignore_then(power)
+                    .repeated(),
                 |lhs, rhs| Expr::InfixOp {
                     op: InfixOp::Mul,
                     lhs: Box::new(lhs),

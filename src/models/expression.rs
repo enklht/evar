@@ -35,7 +35,7 @@ impl std::fmt::Display for Expr {
             Expr::FnCall { name, args } => {
                 let args_str = args
                     .iter()
-                    .map(|x| x.to_string())
+                    .map(Expr::to_string)
                     .reduce(|acc, x| acc + ", " + &x)
                     .unwrap_or_else(|| String::from(""));
                 write!(f, "{}({})", name, args_str)
