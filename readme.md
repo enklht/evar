@@ -76,7 +76,19 @@ evar is inspired by [`eva`](https://github.com/oppiliappan/eva), another CLI cal
 
 ## Installation 🛠️
 
-<!--TODO-->
+- crates.io
+
+```bash
+cargo install evar
+```
+
+- manual
+
+```bash
+git clone https://github.com/enklht/evar.git
+cd evar
+cargo run
+```
 
 ## Usage 🚀
 
