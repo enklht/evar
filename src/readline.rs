@@ -4,8 +4,9 @@ use crate::models::Token;
 use colored::Colorize;
 use logos::Logos;
 use rustyline::{
-    Completer, Config, Editor, Helper, Highlighter, Hinter, Validator, highlight::Highlighter,
-    hint::HistoryHinter, history::FileHistory, validate::MatchingBracketValidator,
+    Completer, Config, Editor, Helper, Highlighter, Hinter, Validator, error::ReadlineError,
+    highlight::Highlighter, hint::HistoryHinter, history::FileHistory,
+    validate::MatchingBracketValidator,
 };
 
 #[derive(Helper, Completer, Hinter, Validator, Highlighter)]
@@ -100,8 +101,8 @@ impl SevaEditor {
         SevaEditor(editor)
     }
 
-    pub fn readline(&mut self) -> String {
-        self.0.readline("> ").expect("failed to read line")
+    pub fn readline(&mut self) -> Result<String, ReadlineError> {
+        self.0.readline("> ")
     }
 
     pub fn load_history(&mut self, path: &std::path::Path) -> Result<(), crate::models::SevaError> {

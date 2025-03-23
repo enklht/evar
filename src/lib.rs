@@ -11,10 +11,8 @@ use chumsky::{
 };
 pub use default_context::create_context;
 pub use error_report::ErrorReporter;
+use models::{Stmt, Token};
 use parser::parser;
-
-use models::Stmt;
-use models::Token;
 
 pub fn lex_and_parse(input: &str) -> Result<Stmt, Vec<Rich<'_, Token<'_>>>> {
     let token_iter = models::token::lex(input).filter(|token| !matches!(token, (Token::Space, _)));

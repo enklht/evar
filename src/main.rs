@@ -1,5 +1,6 @@
 use clap::Parser as ClapParser;
 use directories::ProjectDirs;
+use rustyline::error::ReadlineError;
 use seva::{ErrorReporter, args::Args, create_context, lex_and_parse, readline::SevaEditor};
 
 fn main() {
@@ -31,28 +32,37 @@ fn main() {
     }
 
     loop {
-        let input = editor.readline();
-
-        if input == "exit" || input == "quit" {
-            break;
-        };
-
-        if input == "help" {
-            context.print_help();
-            continue;
-        }
-
-        match lex_and_parse(&input) {
-            Ok(stmt) => {
-                if debug {
-                    println!("{}", stmt)
+        match editor.readline() {
+            Ok(input) => {
+                if input == "exit" || input == "quit" {
+                    break;
                 };
-                match stmt.eval(&mut context) {
-                    Ok(out) => out.print(fix),
-                    Err(err) => eprintln!("{}", err),
+
+                if input == "help" {
+                    context.print_help();
+                    continue;
+                }
+
+                match lex_and_parse(&input) {
+                    Ok(stmt) => {
+                        if debug {
+                            println!("{}", stmt)
+                        };
+                        match stmt.eval(&mut context) {
+                            Ok(out) => out.print(fix),
+                            Err(err) => eprintln!("{}", err),
+                        }
+                    }
+                    Err(errs) => reporter.report_error(errs, &input),
                 }
             }
-            Err(errs) => reporter.report_error(errs, &input),
+            Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => {
+                break;
+            }
+            Err(e) => {
+                println!("Readline Error: {}", e);
+                break;
+            }
         }
     }
 
