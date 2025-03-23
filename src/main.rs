@@ -1,7 +1,34 @@
+mod args;
+mod default_context;
+mod error_report;
+mod models;
+mod parser;
+mod readline;
+
+use args::Args;
+use chumsky::{
+    input::{Input, Stream},
+    prelude::*,
+};
 use clap::Parser as ClapParser;
+use default_context::create_context;
 use directories::ProjectDirs;
-use evar::{ErrorReporter, args::Args, create_context, lex_and_parse, readline::SevaEditor};
+use error_report::ErrorReporter;
+use models::{Stmt, Token};
+use parser::parser;
+use readline::SevaEditor;
 use rustyline::error::ReadlineError;
+
+fn lex_and_parse(input: &str) -> Result<Stmt, Vec<Rich<'_, Token<'_>>>> {
+    let token_iter = models::token::lex(input).filter(|token| !matches!(token, (Token::Space, _)));
+
+    let token_stream = Stream::from_iter(token_iter)
+        .map((input.len()..input.len()).into(), |(token, span)| {
+            (token, span.into())
+        });
+
+    parser().parse(token_stream).into_result()
+}
 
 fn main() {
     let Args {

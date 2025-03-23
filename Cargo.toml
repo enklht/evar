@@ -1,13 +1,13 @@
 [package]
 name = "evar"
-version = "0.1.0"
-authors = ["enklht"]
+version = "0.1.1"
+authors = ["enklht <enklht@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/enklht/seva"
 description = "Modern ergonomic math calculator inspired by eva"
 readme = "./readme.md"
 keywords = ["calculator", "repl", "math", "cli", "bc"]
-categories = ["command-line-interface", "science"]
+categories = ["command-line-interface", "science", "mathematics"]
 license = "MIT"
 
 [dependencies]

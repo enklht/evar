@@ -28,11 +28,6 @@ impl Context {
         }))
     }
 
-    pub fn detach(&mut self) {
-        let variables = self.variables.take().unwrap().parent.take();
-        self.variables = variables
-    }
-
     pub fn get_variable(&self, name: &str) -> Option<Variable> {
         match &self.variables {
             Some(variables) => variables.get_variable(name),

@@ -230,7 +230,7 @@ checksum = "a5d9305ccc6942a704f4335694ecd3de2ea531b114ac2d51f5f843750787a92f"
 
 [[package]]
 name = "evar"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "chumsky",
  "clap",
