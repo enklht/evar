@@ -13,7 +13,7 @@ pub struct Args {
     /// Angle Unit
     #[arg(value_enum, short, long, default_value_t = AngleUnit::Radian)]
     pub angle_unit: AngleUnit,
-    /// Enable colored output
+    /// Disable colored output
     #[arg(long, default_value_t = false)]
     pub no_color: bool,
     /// Number of decimal places in output (0-63) [default: None]

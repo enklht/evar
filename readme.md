@@ -100,7 +100,7 @@ Usage: evar [OPTIONS]
 Options:
   -a, --angle-unit <ANGLE_UNIT>  Angle Unit [default: radian] [possible values: radian,
  degree]
-      --no-color                 Enable colored output
+      --no-color                 Disable colored output
   -f, --fix <FIX>                Number of decimal places in output (0-63) [default: No
 ne]
   -d, --debug                    Print parsed expression for debug purpose
