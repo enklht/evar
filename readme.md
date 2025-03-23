@@ -1,6 +1,15 @@
-# Seva 📝
+<!-- markdownlint-disable no-inline-html first-line-heading -->
 
-Welcome to Seva, a feature-rich CLI calculator REPL! My goal was to create a modern, ergonomic, and simple calculator.
+<div align="center">
+
+![seva.webp](./images/seva.webp)
+
+</div>
+
+# seva
+
+Welcome to Seva, a feature-rich CLI calculator REPL!
+My goal was to create a modern, ergonomic, and simple calculator.
 
 ## Features ✨
 
@@ -71,7 +80,21 @@ Seva is inspired by [`eva`](https://github.com/oppiliappan/eva), another CLI cal
 
 ## Usage 🚀
 
-<!--TODO-->
+```
+Modern ergonomic math calculator inspired by eva
+
+Usage: seva [OPTIONS]
+
+Options:
+  -a, --angle-unit <ANGLE_UNIT>  Angle Unit [default: radian] [possible values: radian,
+ degree]
+      --no-color                 Enable colored output
+  -f, --fix <FIX>                Number of decimal places in output (0-63) [default: No
+ne]
+  -d, --debug                    Print parsed expression for debug purpose
+  -h, --help                     Print help
+  -V, --version                  Print version
+```
 
 ## Contributing 🤝
 
