@@ -86,6 +86,7 @@ fn basic_ops() {
     assert_eq!(parse_expr("6/3"), Ok(binop!(Div, Int(6), Int(3))));
     assert_eq!(parse_expr("6%3"), Ok(binop!(Rem, Int(6), Int(3))));
     assert_eq!(parse_expr("2^3"), Ok(binop!(Pow, Int(2), Int(3))));
+    assert_eq!(parse_expr("6//3"), Ok(binop!(IntDiv, Int(6), Int(3))));
 
     // Different number notations
     assert_eq!(
@@ -214,7 +215,6 @@ fn basic_ops() {
     );
 
     // Failing tests
-    assert!(parse_expr("2 // 3").is_err());
     assert!(parse_expr("2 %% 3").is_err());
     assert!(parse_expr("2 ^^ 3").is_err());
     assert!(parse_expr("2 ** 3").is_err());

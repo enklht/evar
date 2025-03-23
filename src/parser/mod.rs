@@ -152,6 +152,7 @@ where
                 choice((
                     just(Token::Asterisk).to(InfixOp::Mul),
                     just(Token::Slash).to(InfixOp::Div),
+                    just(Token::DoubleSlash).to(InfixOp::IntDiv),
                     just(Token::Percent).to(InfixOp::Rem),
                 ))
                 .then(powers)

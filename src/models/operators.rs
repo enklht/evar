@@ -32,6 +32,7 @@ pub enum InfixOp {
     Sub,
     Mul,
     Div,
+    IntDiv,
     Rem,
     Pow,
 }
@@ -43,6 +44,7 @@ impl std::fmt::Display for InfixOp {
             InfixOp::Sub => "-",
             InfixOp::Mul => "*",
             InfixOp::Div => "/",
+            InfixOp::IntDiv => "//",
             InfixOp::Rem => "%",
             InfixOp::Pow => "^",
         };

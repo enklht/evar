@@ -28,6 +28,8 @@ pub enum Token<'a> {
     Asterisk,
     #[token("/")]
     Slash,
+    #[token("//")]
+    DoubleSlash,
     #[token("%")]
     Percent,
     #[token("^")]
@@ -59,6 +61,7 @@ impl std::fmt::Display for Token<'_> {
             Self::Minus => write!(f, "-"),
             Self::Asterisk => write!(f, "*"),
             Self::Slash => write!(f, "/"),
+            Self::DoubleSlash => write!(f, "//"),
             Self::Percent => write!(f, "%"),
             Self::Caret => write!(f, "^"),
             Self::Exclamation => write!(f, "!"),

@@ -155,6 +155,37 @@ impl Value {
         }
     }
 
+    pub fn int_div(self, rhs: Value) -> Result<Value, EvalError> {
+        use ValueInner::*;
+        match (&*self.0, &*rhs.0) {
+            (Int(x), Int(y)) => {
+                if *y == 0 {
+                    return Err(EvalError::DivisionByZero);
+                }
+                Ok(x.div(*y).into())
+            }
+            (Float(x), Int(y)) => {
+                if *y == 0 {
+                    return Err(EvalError::DivisionByZero);
+                }
+                Ok((x.div(f64::from(*y)).floor() as i32).into())
+            }
+            (Int(x), Float(y)) => {
+                if *y == 0.0 {
+                    return Err(EvalError::DivisionByZero);
+                }
+                Ok((f64::from(*x).div(*y).floor() as i32).into())
+            }
+            (Float(x), Float(y)) => {
+                if *y == 0.0 {
+                    return Err(EvalError::DivisionByZero);
+                }
+                Ok((x.div(*y).floor() as i32).into())
+            }
+            _ => unimplemented!(),
+        }
+    }
+
     pub fn pow(self, rhs: Value) -> Self {
         use ValueInner::*;
         match (&*self.0, &*rhs.0) {

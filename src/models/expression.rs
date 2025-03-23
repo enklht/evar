@@ -60,6 +60,7 @@ impl Expr {
                     Sub => Ok(lhs.eval(context)? - rhs.eval(context)?),
                     Mul => Ok(lhs.eval(context)? * rhs.eval(context)?),
                     Div => lhs.eval(context)? / rhs.eval(context)?,
+                    IntDiv => lhs.eval(context)?.int_div(rhs.eval(context)?),
                     Rem => lhs.eval(context)?.rem_euclid(rhs.eval(context)?),
                     Pow => Ok(lhs.eval(context)?.pow(rhs.eval(context)?)),
                 }
