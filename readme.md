@@ -2,13 +2,13 @@
 
 <div align="center">
 
-![seva.webp](./images/seva.webp)
+![evar.webp](./images/evar.webp)
 
 </div>
 
-# seva
+# evar
 
-Welcome to Seva, a feature-rich CLI calculator REPL!
+Welcome to evar, a feature-rich CLI calculator REPL!
 My goal was to create a modern, ergonomic, and simple calculator.
 
 ## Features ✨
@@ -72,7 +72,7 @@ My goal was to create a modern, ergonomic, and simple calculator.
 
 ## Inspiration 💡
 
-Seva is inspired by [`eva`](https://github.com/oppiliappan/eva), another CLI calculator written in Rust.
+evar is inspired by [`eva`](https://github.com/oppiliappan/eva), another CLI calculator written in Rust.
 
 ## Installation 🛠️
 
@@ -83,7 +83,7 @@ Seva is inspired by [`eva`](https://github.com/oppiliappan/eva), another CLI cal
 ```
 Modern ergonomic math calculator inspired by eva
 
-Usage: seva [OPTIONS]
+Usage: evar [OPTIONS]
 
 Options:
   -a, --angle-unit <ANGLE_UNIT>  Angle Unit [default: radian] [possible values: radian,

@@ -229,6 +229,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a5d9305ccc6942a704f4335694ecd3de2ea531b114ac2d51f5f843750787a92f"
 
 [[package]]
+name = "evar"
+version = "0.1.0"
+dependencies = [
+ "chumsky",
+ "clap",
+ "codespan-reporting",
+ "colored",
+ "directories",
+ "logos",
+ "rustyline",
+ "thiserror",
+]
+
+[[package]]
 name = "fd-lock"
 version = "4.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -543,20 +557,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "seva"
-version = "0.1.0"
-dependencies = [
- "chumsky",
- "clap",
- "codespan-reporting",
- "colored",
- "directories",
- "logos",
- "rustyline",
- "thiserror",
 ]
 
 [[package]]

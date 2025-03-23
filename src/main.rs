@@ -1,7 +1,7 @@
 use clap::Parser as ClapParser;
 use directories::ProjectDirs;
+use evar::{ErrorReporter, args::Args, create_context, lex_and_parse, readline::SevaEditor};
 use rustyline::error::ReadlineError;
-use seva::{ErrorReporter, args::Args, create_context, lex_and_parse, readline::SevaEditor};
 
 fn main() {
     let Args {
