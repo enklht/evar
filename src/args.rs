@@ -1,42 +1,40 @@
-use clap::{Parser, ValueEnum};
+use bpaf::Bpaf;
 
-#[derive(ValueEnum, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum AngleUnit {
     Radian,
-    Degree,
+    Degrees,
 }
 
-#[derive(Parser, Debug)]
-#[command(version, about)]
-/// Command line arguments for the application
+#[derive(Bpaf, Debug)]
+#[bpaf(options, version)]
+/// Modern ergonomic math calculator inspired by eva
 pub struct Args {
-    /// Angle Unit
-    #[arg(value_enum, short, long, default_value_t = AngleUnit::Radian)]
+    /// Use degrees instead of radians
+    #[bpaf(short('d'), long("degrees"), switch, map(|b| if b {AngleUnit::Degrees} else {AngleUnit::Radian}))]
     pub angle_unit: AngleUnit,
-    /// Disable colored output
-    #[arg(long, default_value_t = false)]
-    pub no_color: bool,
+
     /// Number of decimal places in output (0-63) [default: None]
-    #[arg(short, long, value_parser = fix_in_range)]
+    #[bpaf(
+        short,
+        long,
+        guard(fix_in_range, "fix must be in range 0-63"),
+        fallback(None)
+    )]
     pub fix: Option<usize>,
-    // /// Radix of calculation output
-    // #[arg(short, long, default_value_t = 10)]
-    // pub base: u8,
+
+    /// Disable colored output
+    #[bpaf(long, fallback(false))]
+    pub no_color: bool,
+
     /// Print parsed expression for debug purpose
-    #[arg(short, long)]
+    #[bpaf(long)]
     pub debug: bool,
 }
 
-fn fix_in_range(s: &str) -> Result<Option<usize>, String> {
-    if s.is_empty() {
-        return Ok(None);
-    }
-    let fix = s
-        .parse::<usize>()
-        .map_err(|_| format!("{} is not a usize", s))?;
-    if (0..64).contains(&fix) {
-        Ok(Some(fix))
-    } else {
-        Err(String::from("fix must be in range 0-63"))
+fn fix_in_range(fix: &Option<usize>) -> bool {
+    match fix {
+        None => true,
+        Some(fix) => (0..64).contains(fix),
     }
 }

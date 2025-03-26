@@ -36,7 +36,7 @@ pub fn create_context(angle_unit: &AngleUnit) -> Context {
             }),
             unary_fn!("atan", |x| Ok(x[0].to_float()?.atan().into())),
         ],
-        AngleUnit::Degree => [
+        AngleUnit::Degrees => [
             unary_fn!("sin", |x| Ok(x[0].to_float()?.to_radians().sin().into())),
             unary_fn!("cos", |x| Ok(x[0].to_float()?.to_radians().cos().into())),
             unary_fn!("tan", |x| Ok(x[0].to_float()?.to_radians().tan().into())),

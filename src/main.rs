@@ -5,12 +5,11 @@ mod models;
 mod parser;
 mod readline;
 
-use args::Args;
+use args::{Args, args};
 use chumsky::{
     input::{Input, Stream},
     prelude::*,
 };
-use clap::Parser as ClapParser;
 use default_context::create_context;
 use directories::ProjectDirs;
 use error_report::ErrorReporter;
@@ -36,7 +35,7 @@ fn main() {
         debug,
         no_color,
         angle_unit,
-    } = Args::parse();
+    } = args().run();
 
     let mut context = create_context(&angle_unit);
     let mut editor = SevaEditor::new(no_color);
