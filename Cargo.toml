@@ -1,6 +1,6 @@
 [package]
 name = "evar"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["enklht <enklht@gmail.com>"]
 edition = "2024"
 repository = "https://github.com/enklht/seva"
