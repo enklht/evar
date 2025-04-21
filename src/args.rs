@@ -23,7 +23,7 @@ pub struct Args {
     pub fix: Option<usize>,
 
     /// Disable colored output
-    #[bpaf(long, fallback(false))]
+    #[bpaf(long)]
     pub no_color: bool,
 
     /// Print parsed expression for debug purpose
