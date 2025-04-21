@@ -19,12 +19,7 @@ pub struct Args {
     pub angle_unit: AngleUnit,
 
     /// Number of decimal places in output (0-63) [default: None]
-    #[bpaf(
-        short,
-        long,
-        guard(fix_in_range, "fix must be in range 0-63"),
-        fallback(None)
-    )]
+    #[bpaf(short, long, guard(fix_in_range, "fix must be in range 0-63"))]
     pub fix: Option<usize>,
 
     /// Disable colored output
