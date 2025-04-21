@@ -11,7 +11,11 @@ pub enum AngleUnit {
 /// Modern ergonomic math calculator inspired by eva
 pub struct Args {
     /// Use degrees instead of radians
-    #[bpaf(short('d'), long("degrees"), switch, map(|b| if b {AngleUnit::Degrees} else {AngleUnit::Radian}))]
+    #[bpaf(
+        short('d'),
+        long("degrees"),
+        flag(AngleUnit::Degrees, AngleUnit::Radian)
+    )]
     pub angle_unit: AngleUnit,
 
     /// Number of decimal places in output (0-63) [default: None]
