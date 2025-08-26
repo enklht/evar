@@ -16,7 +16,7 @@ chumsky = { version = "0.10.0", default-features = false, features = ["std"] }
 codespan-reporting = "0.12.0"
 colored = "3.0.0"
 directories = "6.0.0"
-logos = "0.15.0"
+logos = "0.15.1"
 rustyline = { version = "17.0.1", features = ["derive"] }
 thiserror = "2.0.16"
 
