@@ -13,7 +13,7 @@ license = "MIT"
 [dependencies]
 bpaf = { version = "0.9.20", features = ["derive"] }
 chumsky = { version = "0.11.1", default-features = false, features = ["std"] }
-codespan-reporting = "0.13.0"
+codespan-reporting = "0.13.1"
 colored = "3.0.0"
 directories = "6.0.0"
 logos = "0.15.1"
