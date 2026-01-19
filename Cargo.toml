@@ -18,7 +18,7 @@ colored = "3.0.0"
 directories = "6.0.0"
 logos = "0.16.0"
 rustyline = { version = "17.0.2", features = ["derive"] }
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 
 [features]
 default = ["bpaf/bright-color"]
