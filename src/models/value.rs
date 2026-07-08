@@ -13,11 +13,11 @@ impl Value {
         use ValueInner::*;
         match &*self.0 {
             Int(n) => println!("{}", n),
-            Float(n) => {
+            Float(f) => {
                 if let Some(fix) = fix {
-                    println!("{:.*}", fix, n);
+                    println!("{:.*}", fix, f);
                 } else {
-                    println!("{}", n);
+                    println!("{}", f);
                 }
             }
             Null => {}
