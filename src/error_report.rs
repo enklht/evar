@@ -4,7 +4,7 @@ use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFile,
     term::{
-        Config, emit,
+        Config, emit_to_write_style,
         termcolor::{ColorChoice, StandardStream},
     },
 };
@@ -44,7 +44,7 @@ impl ErrorReporter {
                 .with_message(err.reason().to_string())
                 .with_labels(labels);
 
-            emit(&mut self.writer.lock(), &self.config, &file, &diagnostic)
+            emit_to_write_style(&mut self.writer.lock(), &self.config, &file, &diagnostic)
                 .expect("failed writing diagnostics");
         }
     }
